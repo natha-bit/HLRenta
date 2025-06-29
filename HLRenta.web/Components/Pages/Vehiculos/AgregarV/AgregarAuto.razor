@@ -1,0 +1,85 @@
+﻿@page "/agregar" 
+
+<div class="form-container">
+            <div class="success-message" id="successMessage">
+                ✅ Vehículo registrado exitosamente
+            </div>
+
+            <form id="vehicleForm">
+                <div class="form-group">
+                    <label for="marca">Marca <span class="required">*</span></label>
+                    <select id="marca" name="marca" required>
+                        <option value="">Seleccionar marca</option>
+                        <option value="Toyota">Toyota</option>
+                        <option value="Honda">Honda</option>
+                        <option value="Ford">Ford</option>
+                        <option value="Chevrolet">Chevrolet</option>
+                        <option value="Nissan">Nissan</option>
+                        <option value="Hyundai">Hyundai</option>
+                        <option value="Kia">Kia</option>
+                        <option value="Volkswagen">Volkswagen</option>
+                        <option value="Mazda">Mazda</option>
+                        <option value="BMW">BMW</option>
+                        <option value="Mercedes-Benz">Mercedes-Benz</option>
+                        <option value="Audi">Audi</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="modelo">Modelo <span class="required">*</span></label>
+                    <input type="text" id="modelo" name="modelo" required placeholder="Ej: Corolla, Civic, Focus">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="año">Año <span class="required">*</span></label>
+                        <input type="number" id="año" name="año" min="2000" max="2025" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="color">Color</label>
+                        <input type="text" id="color" name="color" placeholder="Ej: Blanco, Negro">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="placa">Número de Placa <span class="required">*</span></label>
+                    <input type="text" id="placa" name="placa" required placeholder="Ej: ABC-123" style="text-transform: uppercase;">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tipo">Tipo de Vehículo <span class="required">*</span></label>
+                        <select id="tipo" name="tipo" required>
+                            <option value="">Seleccionar tipo</option>
+                            <option value="Sedán">Sedán</option>
+                            <option value="SUV">SUV</option>
+                            <option value="Hatchback">Hatchback</option>
+                            <option value="Pickup">Pickup</option>
+                            <option value="Convertible">Convertible</option>
+                            <option value="Minivan">Minivan</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="precio">Precio por Día (USD) <span class="required">*</span></label>
+                        <input type="number" id="precio" name="precio" min="1" step="0.01" required placeholder="50.00">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Imágenes del Vehículo <span class="required">*</span></label>
+                    <div class="image-upload-container" onclick="document.getElementById('imagenes').click()">
+                        <input type="file" id="imagenes" name="imagenes" multiple accept="image/*" required>
+                        <div class="upload-icon">📸</div>
+                        <div class="upload-text">Subir Imágenes</div>
+                        <div class="upload-subtext">Haz clic aquí o arrastra las imágenes</div>
+                    </div>
+                    <div class="image-preview" id="imagePreview"></div>
+                </div>
+
+                <div class="btn-container">
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">Limpiar</button>
+                    <button type="submit" class="btn btn-primary">Registrar Vehículo</button>
+                </div>
+            </form>
+        </div>

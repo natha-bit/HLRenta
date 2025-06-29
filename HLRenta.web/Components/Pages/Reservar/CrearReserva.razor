@@ -1,0 +1,129 @@
+﻿@page "/reservar"
+<h3>CrearReserva</h3>
+
+
+<div class="container">
+<div class="main-content">
+            <div class="reservation-form">
+                <form id="reservationForm">
+                    <div class="form-section">
+                        <h3>📅 Fechas y Ubicación</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="pickupDate">Fecha de Recogida</label>
+                                <input type="date" id="pickupDate" name="pickupDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="returnDate">Fecha de Devolución</label>
+                                <input type="date" id="returnDate" name="returnDate" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="pickupTime">Hora de Recogida</label>
+                                <input type="time" id="pickupTime" name="pickupTime" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="returnTime">Hora de Devolución</label>
+                                <input type="time" id="returnTime" name="returnTime" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="pickupLocation">Lugar de Recogida</label>
+                            <select id="pickupLocation" name="pickupLocation" required>
+                                <option value="">Selecciona una ubicación</option>
+                                <option value="aeropuerto">Aeropuerto Internacional</option>
+                                <option value="centro">Centro de la Ciudad</option>
+                                <option value="hotel">Hotel (Entrega)</option>
+                                <option value="oficina">Oficina Principal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>🚙 Selecciona tu Vehículo</h3>
+                    <div class="form-group">
+                        <label for="pickupLocation">Lugar de Recogida</label>
+                        <select id="pickupLocation" name="pickupLocation" required>
+                            <option value="">Selecciona una ubicación</option>
+                            <option value="aeropuerto">Aeropuerto Internacional</option>
+                            <option value="centro">Centro de la Ciudad</option>
+                            <option value="hotel">Hotel (Entrega)</option>
+                            <option value="oficina">Oficina Principal</option>
+                        </select>
+                    </div>
+                    </div>
+
+
+                    <div class="form-section">
+                        <h3>👤 Información Personal</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="firstName">Nombre</label>
+                                <input type="text" id="firstName" name="firstName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName">Apellido</label>
+                                <input type="text" id="lastName" name="lastName" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Teléfono</label>
+                                <input type="tel" id="phone" name="phone" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="license">Número de Licencia</label>
+                            <input type="text" id="license" name="license" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="comments">Comentarios Adicionales</label>
+                            <textarea id="comments" name="comments" rows="3" placeholder="Alguna solicitud especial..."></textarea>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="success-message" id="successMessage">
+                    <h3>🎉 ¡Reserva Confirmada!</h3>
+                    <p>Te hemos enviado los detalles de tu reserva por email. ¡Gracias por elegir HL RentaCar!</p>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h3>📋 Resumen de Reserva</h3>
+                <div id="reservationSummary">
+                    <div class="summary-item">
+                        <span>Vehículo:</span>
+                        <span id="selectedVehicle">Sin seleccionar</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Días:</span>
+                        <span id="totalDays">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">$0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Extras:</span>
+                        <span id="extrasTotal">$0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total:</span>
+                        <span id="grandTotal">$0</span>
+                    </div>
+                </div>
+                <button type="submit" form="reservationForm" class="submit-btn" id="reserveBtn">
+                    Confirmar Reserva 🚗
+                </button>
+            </div>
+        </div>
+</div>
+@code {
+
+}

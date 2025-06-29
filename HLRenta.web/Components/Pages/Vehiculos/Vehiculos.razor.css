@@ -1,0 +1,81 @@
+﻿/* Contenido principal */
+.main-content {
+    padding: 3rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    margin-bottom: 2.5rem;
+    color: #333;
+    text-transform: uppercase;
+}
+
+/* Grid de vehículos */
+.vehicle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    justify-content: center;
+}
+
+/* Tarjeta individual */
+.vehicle-card {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .vehicle-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+
+/* Imagen de fondo */
+.vehicle-image {
+    height: 180px;
+    background-size: cover;
+    background-position: center;
+}
+
+/* Fondos específicos (puedes ajustar las imágenes o colores) */
+.pickup-bg {
+    background-image: url('/images/pickup.jpg'); /* Reemplaza con tu ruta */
+    background-color: #e3e3e3;
+}
+
+.suv-bg {
+    background-image: url('/images/suv.jpg'); /* Reemplaza con tu ruta */
+    background-color: #dce6f5;
+}
+
+/* Información del vehículo */
+.vehicle-info {
+    padding: 1.5rem;
+}
+
+.vehicle-category {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #007bff;
+}
+
+/* Botón de selección */
+.select-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    .select-btn:hover {
+        background-color: #0056b3;
+    }
