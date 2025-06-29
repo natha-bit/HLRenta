@@ -1,0 +1,108 @@
+﻿@page "/perfil"
+
+@rendermode InteractiveServer
+<div class="container">
+    <!-- Header con información del administrador -->
+    <div class="header">
+        <div class="admin-info">
+            <div class="avatar">JD</div>
+            <div class="admin-details">
+                <h1>Juan Domínguez</h1>
+                <p>Administrador del Sistema</p>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="dashboard">
+        <div class="card">
+            <h2>🚗 Gestión de Vehículos</h2>
+            <p style="color: #666; margin-bottom: 25px; line-height: 1.6;">
+                Administra tu flota de vehículos de manera eficiente. Agrega nuevos autos, actualiza información existente y mantén tu inventario organizado.
+            </p>
+            <a href="agregar" class="btn" style="text-decoration: none; display: inline-block; text-align: center;">
+                ➕ Agregar Nuevo Vehículo
+            </a>
+        </div>
+
+        <div class="card">
+            <h2>📊 Generar Reportes</h2>
+
+            <div class="form-group">
+                <label for="tipoReporte">Tipo de Reporte</label>
+                <select id="tipoReporte" class="form-control" @bind="tipoReporte">
+                    <option value="reservaciones">Reservaciones</option>
+                    <option value="vehiculos">Vehículos</option>
+                </select>
+            </div>
+
+            @if (tipoReporte == "reservaciones")
+            {
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fechaInicio">Fecha Inicio</label>
+                        <input type="date" id="fechaInicio" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="fechaFin">Fecha Fin</label>
+                        <input type="date" id="fechaFin" class="form-control">
+                    </div>
+                </div>
+            }
+            <div class="report-section">
+                <a href="reporte.pdf" class="btn btn-secondary" style="text-decoration: none;">📄 Generar</a>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <h2>📋 Reservaciones Recientes</h2>
+        <table class="reservations-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Vehículo</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Fin</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>#001</td>
+                    <td>María González</td>
+                    <td>Toyota Corolla 2023</td>
+                    <td>25/06/2025</td>
+                    <td>30/06/2025</td>
+                    <td>$225.00</td>
+                    <td><span class="status activa">Activa</span></td>
+                    
+                </tr>
+                <tr>
+                    <td>#002</td>
+                    <td>Carlos Martínez</td>
+                    <td>Honda Civic 2024</td>
+                    <td>20/06/2025</td>
+                    <td>25/06/2025</td>
+                    <td>$275.00</td>
+                    <td><span class="status completada">Completada</span></td>
+                </tr>
+                <tr>
+                    <td>#003</td>
+                    <td>Ana Rodríguez</td>
+                    <td>Ford Focus 2023</td>
+                    <td>28/06/2025</td>
+                    <td>02/07/2025</td>
+                    <td>$200.00</td>
+                    <td><span class="status cancelada">Cancelada</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+@code {
+    private string tipoReporte = "reservaciones";
+
+
+}

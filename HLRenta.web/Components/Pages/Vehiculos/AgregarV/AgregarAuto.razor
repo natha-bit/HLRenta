@@ -9,7 +9,7 @@
 <div class="form-container">
     @if (!string.IsNullOrEmpty(mensajeExito))
     {
-        <div class="success-message" id="successMessage">
+        <div class="@((mensajeExito.StartsWith("✅")) ? "success-message" : "error-message")">
             @mensajeExito
         </div>
     }
@@ -62,9 +62,9 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="precio">Precio por Día (USD) <span class="required">*</span></label>
+                <label for="precio">Precio por Día (DOP) <span class="required">*</span></label>
                 <input type="number" id="precio" class="form-control" @bind="vehiculo.PrecioPorDia"
-                       step="0.01" min="1" placeholder="50.00" required />
+                       step="0.01" min="1" placeholder="3000.00" required />
             </div>
         </div>
 
@@ -85,8 +85,10 @@
                     }
                 }
             </label>
+            <div class="input-file-hidden">
             <InputFile id="imagenes" name="imagenes" multiple accept="image/*"
-                       class="input-file-hidden" OnChange="OnInputFileChange" />
+                        OnChange="OnInputFileChange" />
+            </div>
         </div>
 
         <div class="btn-container">
@@ -96,47 +98,6 @@
     </form>
 </div>
 
-<style>
-    .image-upload-container {
-        border: 2px dashed #ccc;
-        padding: 30px;
-        text-align: center;
-        cursor: pointer;
-        border-radius: 10px;
-        position: relative;
-        min-height: 200px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-    }
-
-    .upload-icon {
-        font-size: 40px;
-        color: #999;
-    }
-
-    .upload-text {
-        font-weight: bold;
-        font-size: 18px;
-    }
-
-    .upload-subtext {
-        font-size: 14px;
-        color: #666;
-    }
-
-    .input-file-hidden {
-        display: none;
-    }
-
-    .image-preview-inside {
-        max-height: 150px;
-        max-width: 100%;
-        border-radius: 8px;
-        object-fit: contain;
-    }
-</style>
 
 @code {
     private VehiculoDto vehiculo = new();
@@ -218,19 +179,29 @@
 
             if (guardado)
             {
-                mensajeExito = "✅ Vehículo guardado exitosamente en la base de datos.";
-                await Task.Delay(3000);
                 LimpiarFormulario();
+                await MostrarMensajeTemporal("✅ Vehículo guardado exitosamente en la base de datos.");
+                
             }
             else
             {
-                mensajeExito = "❌ Error: No se pudo guardar el vehículo en la base de datos.";
+                await MostrarMensajeTemporal("❌ Error: No se pudo guardar el vehículo.");
+
             }
         }
         catch (Exception ex)
         {
-            mensajeExito = $"❌ Error al guardar el vehículo: {ex.Message}";
+            await MostrarMensajeTemporal("❌ Error al guardar el vehículo: {ex.Message}");
         }
+    }
+
+    private async Task MostrarMensajeTemporal(string mensaje)
+    {
+        mensajeExito = mensaje;
+        StateHasChanged(); 
+        await Task.Delay(2000); 
+        mensajeExito = null;
+        StateHasChanged();
     }
 
     private void LimpiarFormulario()

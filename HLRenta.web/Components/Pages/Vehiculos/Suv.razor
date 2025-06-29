@@ -1,0 +1,55 @@
+﻿@page "/vehiculos"
+@using RentaCAR.Dtos
+@using HLRenta.web.Data.Services
+@inject IVehiculoService vehiculoService
+
+<main class="main-content">
+    <div class="category-header">
+        <h1 class="category-title">Vehículos Disponibles</h1>
+        <p class="category-subtitle">
+            Explora nuestra flota completa de vehículos para todas tus necesidades de viaje.
+        </p>
+    </div>
+
+    <div class="vehicle-grid">
+        @if (vehiculos.Count == 0)
+        {
+            <p>No hay vehículos disponibles.</p>
+        }
+        else
+        {
+            @foreach (var v in vehiculos)
+            {
+                <div class="vehicle-card">
+                    <div class="vehicle-image" style="background-image: url('@v.Imagenes?.FirstOrDefault()');"></div>
+                    <div class="vehicle-info">
+                        <h3 class="vehicle-name">@v.Marca @v.Modelo</h3>
+                        <p class="vehicle-specs">
+                            • Año: @v.Anio<br />
+                            • Color: @v.Color<br />
+                            • Tipo: @v.Tipo
+                        </p>
+                        <div class="vehicle-price">RD$@v.PrecioPorDia.ToString("N2") / día</div>
+                        <button class="select-btn" @onclick="@(() => Reservar(v.Id))">Reservar Ahora</button>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</main>
+
+@code {
+    private List<VehiculoDto> vehiculos = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        vehiculos = await vehiculoService.ObtenerTodosAsync();
+    }
+
+    private void Reservar(int idVehiculo)
+    {
+        // Lógica para redirigir a la página de reserva con el id del vehículo
+        // NavigationManager.NavigateTo($"/reservar/{idVehiculo}");
+    }
+}
+

@@ -1,0 +1,177 @@
+﻿/* CONTENEDOR GENERAL */
+.container {
+    max-width: 1200px;
+    margin: 3rem auto;
+    padding: 1rem;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* ENCABEZADO DEL ADMIN */
+.header {
+    margin-bottom: 2.5rem;
+}
+
+.admin-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.avatar {
+    background-color: #007bff;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-details h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #333;
+}
+
+.admin-details p {
+    margin: 0.2rem 0;
+    color: #555;
+    font-size: 0.95rem;
+}
+
+/* DASHBOARD */
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+/* TARJETAS */
+.card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+    border-left: 6px solid #007bff;
+}
+
+    .card h2 {
+        margin-top: 0;
+        color: #007bff;
+    }
+
+/* BOTONES */
+.btn {
+    background-color: #007bff;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+}
+
+    .btn:hover {
+        background-color: #0056b3;
+    }
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+    .btn-secondary:hover {
+        background-color: #495057;
+    }
+
+/* FORMULARIOS EN DASHBOARD */
+.form-group {
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: column;
+}
+
+    .form-group label {
+        font-weight: bold;
+        margin-bottom: 0.4rem;
+        color: #333;
+    }
+
+.form-control {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.report-section {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+/* TABLA DE RESERVAS */
+.reservations-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+}
+
+    .reservations-table th,
+    .reservations-table td {
+        padding: 0.8rem;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .reservations-table thead {
+        background-color: #f1f1f1;
+    }
+
+.status {
+    padding: 0.3rem 0.8rem;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+    .status.activa {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status.completada {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status.cancelada {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+/* NOTIFICACIÓN */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #28a745;
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    font-size: 0.95rem;
+    display: none;
+    z-index: 9999;
+}
