@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace RentaCAR.Entities
+namespace HLRenta.web.Data.Entities
 {
     [Table("Reservas")]
     public class Reserva
@@ -14,6 +14,8 @@ namespace RentaCAR.Entities
 
         [Required]
         public DateTime FechaHoraDevolucion { get; set; }
+
+        public string? Estado { get; set; }
 
         [Required]
         public string LugarRecogida { get; set; }

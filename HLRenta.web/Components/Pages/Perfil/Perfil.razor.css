@@ -52,6 +52,9 @@
 
 /* TARJETAS */
 .card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     background-color: #fff;
     border-radius: 12px;
     padding: 2rem;
@@ -122,17 +125,54 @@
 
 /* TABLA DE RESERVAS */
 .reservations-table {
-    width: 100%;
+    width: 1150px;
+    table-layout: auto; /* evita que las columnas se colapsen */
     border-collapse: collapse;
-    margin-top: 1.5rem;
-    font-size: 0.95rem;
 }
 
     .reservations-table th,
     .reservations-table td {
-        padding: 0.8rem;
-        text-align: center;
+        padding: 12px;
+        text-align: left;
         border-bottom: 1px solid #ddd;
+    }
+
+        /* Evita que botones se apilen */
+        .reservations-table td .btn {
+            display: inline-block;
+            margin: 4px 5px;
+            padding: 6px 14px;
+            min-width: 80px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.15s ease;
+            color: white;
+        }
+
+        .reservations-table td .btn-primary {
+            background-color: #007bff;
+        }
+
+            .reservations-table td .btn-primary:hover {
+                background-color: #0056b3;
+                transform: scale(1.05);
+            }
+
+        .reservations-table td .btn-danger {
+            background-color: #dc3545;
+        }
+
+            .reservations-table td .btn-danger:hover {
+                background-color: #a71d2a;
+                transform: scale(1.05);
+            }
+
+    /* Si estás usando columnas estrechas, evita que todo se colapse */
+    .reservations-table td {
+        white-space: nowrap;
     }
 
     .reservations-table thead {
@@ -161,7 +201,6 @@
         color: #721c24;
     }
 
-/* NOTIFICACIÓN */
 .notification {
     position: fixed;
     bottom: 20px;
@@ -174,4 +213,17 @@
     font-size: 0.95rem;
     display: none;
     z-index: 9999;
+}
+.reporte-expandido {
+    margin: 3rem auto;
+    padding: 1rem;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    max-width: 1150px;
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+    border-left: 6px solid #007bff;
+    /* centrado horizontal */
+    margin: 2rem auto;
 }

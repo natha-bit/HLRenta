@@ -1,6 +1,6 @@
+using HLRenta.web.Data.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using RentaCAR.Entities;
 
 namespace HLRenta.web.Data
 {

@@ -560,3 +560,15 @@ input[type="file"] {
     border-radius: 8px;
     object-fit: contain;
 }
+
+card reporte-expandid {
+    display: flex;
+    width: 3000px;
+    max-width: 100%;
+    box-sizing: border-box;
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}

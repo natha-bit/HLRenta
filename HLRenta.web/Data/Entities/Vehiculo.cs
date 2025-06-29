@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace RentaCAR.Entities
+namespace HLRenta.web.Data.Entities
 {
     [Table("Vehiculos")]
     public class Vehiculo

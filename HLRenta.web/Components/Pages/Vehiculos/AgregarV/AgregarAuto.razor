@@ -1,7 +1,10 @@
 ﻿@page "/agregar"
-@using RentaCAR.Dtos
+@page "/agregar/{id:int?}"
+
+@using HLRenta.web.Data.Entities
 @using HLRenta.web.Data.Services
 @using Microsoft.AspNetCore.Components.Forms
+@using HLRenta.web.Data.Dtos
 @inject IWebHostEnvironment env
 @inject IVehiculoService vehiculoService
 @rendermode InteractiveServer
@@ -93,17 +96,23 @@
 
         <div class="btn-container">
             <button type="button" class="btn btn-secondary" @onclick="LimpiarFormulario">Limpiar</button>
-            <button type="submit" class="btn btn-primary">Registrar Vehículo</button>
+            <button type="submit" class="btn btn-primary">
+                @(esEdicion ? "Guardar Cambios" : "Registrar Vehículo")
+            </button>
         </div>
     </form>
 </div>
 
 
 @code {
+    [Parameter]
+    public int? id { get; set; }
+
     private VehiculoDto vehiculo = new();
     private List<IBrowserFile> archivosCargados = new();
     private List<string> previews = new();
     private string? mensajeExito;
+    private bool esEdicion = false;
 
     private List<string> marcasDisponibles = new() {
         "Toyota", "Honda", "Ford", "Chevrolet", "Nissan", "Hyundai",
@@ -113,6 +122,34 @@
     private List<string> tiposVehiculo = new() {
         "Sedán", "SUV", "Hatchback", "Pickup", "Convertible", "Minivan"
     };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (id.HasValue)
+        {
+            var vehiculoExistente = await vehiculoService.ObtenerPorIdAsync(id.Value);
+            if (vehiculoExistente != null)
+            {
+                vehiculo = vehiculoExistente;
+                esEdicion = true;
+                previews = vehiculo.Imagenes.Select(img => "/" + img).ToList();
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id != null)
+        {
+            esEdicion = true;
+            var vehiculoExistente = await vehiculoService.ObtenerPorIdAsync(id.Value);
+            if (vehiculoExistente != null)
+            {
+                vehiculo = vehiculoExistente;
+                previews = vehiculo.Imagenes.Select(img => img.StartsWith("data:") ? img : "/" + img).ToList();
+            }
+        }
+    }
 
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
@@ -150,50 +187,92 @@
                 return;
             }
 
-            if (!archivosCargados.Any())
-            {
-                mensajeExito = "❌ Debe seleccionar al menos una imagen.";
-                return;
-            }
-
             string carpeta = Path.Combine(env.WebRootPath, "imgVehiculos");
             if (!Directory.Exists(carpeta))
                 Directory.CreateDirectory(carpeta);
 
-            var rutas = new List<string>();
+            bool resultado;
 
-            foreach (var file in archivosCargados)
+            if (esEdicion)
             {
-                var nombre = $"{Guid.NewGuid()}{Path.GetExtension(file.Name)}";
-                var rutaFisica = Path.Combine(carpeta, nombre);
+                if (archivosCargados.Any())
+                {
+                    // 🔴 ELIMINAR IMÁGENES ANTERIORES DEL DISCO
+                    if (vehiculo.Imagenes != null)
+                    {
+                        foreach (var ruta in vehiculo.Imagenes)
+                        {
+                            var rutaCompleta = Path.Combine(env.WebRootPath, ruta);
+                            if (System.IO.File.Exists(rutaCompleta))
+                            {
+                                System.IO.File.Delete(rutaCompleta);
+                            }
+                        }
+                    }
 
-                using var stream = new FileStream(rutaFisica, FileMode.Create);
-                await file.OpenReadStream().CopyToAsync(stream);
+                    // 🔵 GUARDAR NUEVAS IMÁGENES
+                    var rutas = new List<string>();
+                    foreach (var file in archivosCargados)
+                    {
+                        var nombre = $"{Guid.NewGuid()}{Path.GetExtension(file.Name)}";
+                        var rutaFisica = Path.Combine(carpeta, nombre);
 
-                rutas.Add($"imgVehiculos/{nombre}");
-            }
+                        using var stream = new FileStream(rutaFisica, FileMode.Create);
+                        await file.OpenReadStream().CopyToAsync(stream);
 
-            vehiculo.Imagenes = rutas;
+                        rutas.Add($"imgVehiculos/{nombre}");
+                    }
 
-            bool guardado = await vehiculoService.CrearAsync(vehiculo);
+                    vehiculo.Imagenes = rutas;
+                }
 
-            if (guardado)
-            {
-                LimpiarFormulario();
-                await MostrarMensajeTemporal("✅ Vehículo guardado exitosamente en la base de datos.");
-                
+                // 🔵 ACTUALIZAR
+                resultado = await vehiculoService.ActualizarAsync(vehiculo.Id, vehiculo);
             }
             else
             {
-                await MostrarMensajeTemporal("❌ Error: No se pudo guardar el vehículo.");
+                if (!archivosCargados.Any())
+                {
+                    mensajeExito = "❌ Debe seleccionar al menos una imagen.";
+                    return;
+                }
 
+                // 🔵 GUARDAR IMÁGENES NUEVAS
+                var rutas = new List<string>();
+                foreach (var file in archivosCargados)
+                {
+                    var nombre = $"{Guid.NewGuid()}{Path.GetExtension(file.Name)}";
+                    var rutaFisica = Path.Combine(carpeta, nombre);
+
+                    using var stream = new FileStream(rutaFisica, FileMode.Create);
+                    await file.OpenReadStream().CopyToAsync(stream);
+
+                    rutas.Add($"imgVehiculos/{nombre}");
+                }
+
+                vehiculo.Imagenes = rutas;
+
+                resultado = await vehiculoService.CrearAsync(vehiculo);
+            }
+
+            if (resultado)
+            {
+                await MostrarMensajeTemporal(esEdicion
+                    ? "✅ Vehículo actualizado correctamente."
+                    : "✅ Vehículo guardado exitosamente.");
+                LimpiarFormulario();
+            }
+            else
+            {
+                await MostrarMensajeTemporal("❌ Error: no se pudo guardar el vehículo.");
             }
         }
         catch (Exception ex)
         {
-            await MostrarMensajeTemporal("❌ Error al guardar el vehículo: {ex.Message}");
+            await MostrarMensajeTemporal($"❌ Error al guardar el vehículo: {ex.Message}");
         }
     }
+
 
     private async Task MostrarMensajeTemporal(string mensaje)
     {

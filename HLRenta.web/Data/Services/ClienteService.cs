@@ -1,7 +1,7 @@
 ﻿using HLRenta.web.Data;
+using HLRenta.web.Data.Dtos;
 using Microsoft.EntityFrameworkCore;
-using RentaCAR.Dtos;
-using RentaCAR.Entities;
+using HLRenta.web.Data.Entities;
 
 namespace RentaCAR.Services
 {

@@ -1,9 +1,8 @@
-﻿using HLRenta.web.Data;
+﻿using HLRenta.web.Data.Dtos;
 using Microsoft.EntityFrameworkCore;
-using RentaCAR.Dtos;
-using RentaCAR.Entities;
+using HLRenta.web.Data.Entities;
 
-namespace RentaCAR.Services
+namespace HLRenta.web.Data.Services
 {
     public interface IReservaService
     {
@@ -12,6 +11,7 @@ namespace RentaCAR.Services
         Task CrearAsync(ReservaDto dto);
         Task<bool> ActualizarAsync(int id, ReservaDto dto);
         Task<bool> EliminarAsync(int id);
+        Task<List<ReservaDto>> ObtenerPorRangoAsync(DateTime fechaInicio, DateTime fechaFin);
     }
 
     public class ReservaService : IReservaService
@@ -119,5 +119,36 @@ namespace RentaCAR.Services
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<List<ReservaDto>> ObtenerPorRangoAsync(DateTime fechaInicio, DateTime fechaFin)
+        {
+            if (fechaInicio > fechaFin)
+                throw new ArgumentException("La fecha de inicio no puede ser mayor que la fecha de fin.");
+
+            return await _context.Reservas
+                .Include(r => r.Cliente)
+                .Include(r => r.Vehiculo)
+                .Where(r =>
+                    r.FechaHoraRecogida.Date >= fechaInicio.Date &&
+                    r.FechaHoraDevolucion.Date <= fechaFin.Date)
+                .Select(r => new ReservaDto
+                {
+                    Id = r.Id,
+                    FechaHoraRecogida = r.FechaHoraRecogida,
+                    FechaHoraDevolucion = r.FechaHoraDevolucion,
+                    Estado = r.Estado,
+                    LugarRecogida = r.LugarRecogida,
+                    LugarDevolucion = r.LugarDevolucion,
+                    Subtotal = r.Subtotal,
+                    Extras = r.Extras,
+                    Total = r.Total,
+                    ClienteId = r.ClienteId,
+                    ClienteNombre = r.Cliente.Nombre,
+                    VehiculoId = r.VehiculoId,
+                    VehiculoModelo = r.Vehiculo.Modelo
+                })
+                .ToListAsync();
+        }
+
     }
 }

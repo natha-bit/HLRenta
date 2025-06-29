@@ -1,4 +1,4 @@
-﻿namespace RentaCAR.Dtos
+﻿namespace HLRenta.web.Data.Dtos
 {
     public class ClienteDto
     {

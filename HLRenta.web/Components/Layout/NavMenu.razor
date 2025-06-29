@@ -10,7 +10,21 @@
             <li><a href="#">Inicio</a></li>
             <li><a href="vehiculos">Vehículos</a></li>
             <li><a href="reservaciones">Reservaciones</a></li>
+            <AuthorizeView>
+            <Authorized>
+            <li><a href="perfil">Perfil</a></li>
+                    <li>
+                        <form action="Account/Logout" method="post" style="display:inline;">
+                            <AntiforgeryToken />
+                            <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                            <button type="submit" class="nav-link logout-button">Cerrar sesión</button>
+                        </form>
+                    </li>
+            </Authorized>
+            <NotAuthorized>
             <li><a href="Account/Login">Iniciar sesion</a></li>
+            </NotAuthorized>
+            </AuthorizeView>
         </ul>
     </div>
 </header>
