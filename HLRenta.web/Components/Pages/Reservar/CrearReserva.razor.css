@@ -298,24 +298,23 @@ input, select, textarea {
 }
 
 .success-message {
-    display: none;
-    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-    color: white;
-    padding: 20px;
+    background-color: #d1f4d1;
+    color: #27632a;
+    border: 1px solid #a3d9a5;
+    padding: 16px 24px;
     border-radius: 10px;
-    text-align: center;
+    font-size: 1rem;
     margin-top: 20px;
-    animation: slideDown 0.5s ease-out;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    transition: opacity 0.3s ease-in-out;
+    animation: fadeOut 0.5s ease-in-out 2.5s forwards;
 }
 
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-
+@keyframes fadeOut {
     to {
-        opacity: 1;
-        transform: translateY(0);
+        opacity: 0;
+        transform: translateY(-10px);
+        visibility: hidden;
     }
 }
+

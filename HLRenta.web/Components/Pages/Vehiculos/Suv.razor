@@ -2,7 +2,15 @@
 @using HLRenta.web.Data.Dtos
 @using HLRenta.web.Data.Services
 @using HLRenta.web.Data.Entities
+@using System.Text.Json
+
+
+@rendermode InteractiveServer
+
 @inject IVehiculoService vehiculoService
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
 
 <main class="main-content">
     <div class="category-header">
@@ -47,10 +55,19 @@
         vehiculos = await vehiculoService.ObtenerTodosAsync();
     }
 
-    private void Reservar(int idVehiculo)
+    private async Task Reservar(int idVehiculo)
     {
-        // Lógica para redirigir a la página de reserva con el id del vehículo
-        // NavigationManager.NavigateTo($"/reservar/{idVehiculo}");
+        var vehiculo = vehiculos.FirstOrDefault(v => v.Id == idVehiculo);
+        if (vehiculo != null)
+        {
+            var reservaInicial = new
+            {
+                TipoVehiculo = vehiculo.Tipo
+            };
+
+            await JS.InvokeVoidAsync("localStorage.setItem", "reservaInfo", JsonSerializer.Serialize(reservaInicial));
+            Navigation.NavigateTo("/reservar");
+        }
     }
 }
 

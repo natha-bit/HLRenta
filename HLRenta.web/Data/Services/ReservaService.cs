@@ -12,6 +12,8 @@ namespace HLRenta.web.Data.Services
         Task<bool> ActualizarAsync(int id, ReservaDto dto);
         Task<bool> EliminarAsync(int id);
         Task<List<ReservaDto>> ObtenerPorRangoAsync(DateTime fechaInicio, DateTime fechaFin);
+
+        Task CrearReservaCompletaAsync(ReservaCompletaDto dto);
     }
 
     public class ReservaService : IReservaService
@@ -149,6 +151,52 @@ namespace HLRenta.web.Data.Services
                 })
                 .ToListAsync();
         }
+        public async Task CrearReservaCompletaAsync(ReservaCompletaDto dto)
+        {
+            // Verificar si el cliente ya existe por email o teléfono
+            var clienteExistente = await _context.Clientes
+                .FirstOrDefaultAsync(c => c.Email == dto.Email || c.Telefono == dto.Telefono);
+
+            Cliente cliente;
+
+            if (clienteExistente != null)
+            {
+                cliente = clienteExistente;
+            }
+            else
+            {
+                cliente = new Cliente
+                {
+                    Nombre = dto.Nombre,
+                    Apellido = dto.Apellido,
+                    Email = dto.Email,
+                    Telefono = dto.Telefono,
+                    NumeroLicencia = dto.NumeroLicencia
+                };
+
+                _context.Clientes.Add(cliente);
+                await _context.SaveChangesAsync();
+            }
+
+            var reserva = new Reserva
+            {
+                FechaHoraRecogida = dto.FechaHoraRecogida,
+                FechaHoraDevolucion = dto.FechaHoraDevolucion,
+                LugarRecogida = dto.LugarRecogida,
+                LugarDevolucion = dto.LugarDevolucion,
+                Subtotal = dto.Subtotal,
+                Extras = dto.Extras,
+                Total = dto.Total,
+                ClienteId = cliente.Id,
+                VehiculoId = dto.VehiculoId,
+                Estado = "Pendiente"
+            };
+
+            _context.Reservas.Add(reserva);
+            await _context.SaveChangesAsync();
+        }
+
+
 
     }
 }

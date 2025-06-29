@@ -1,9 +1,8 @@
-﻿using HLRenta.web.Data;
-using HLRenta.web.Data.Dtos;
+﻿using HLRenta.web.Data.Dtos;
 using Microsoft.EntityFrameworkCore;
 using HLRenta.web.Data.Entities;
 
-namespace RentaCAR.Services
+namespace HLRenta.web.Data.Services
 {
     public interface IClienteService
     {

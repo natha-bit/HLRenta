@@ -1,18 +1,20 @@
 ﻿@page "/reservar"
 @using System.Globalization
 @using System.Text.Json
-@inject IJSRuntime JS
-@rendermode InteractiveServer
+@using HLRenta.web.Data.Dtos
+@using HLRenta.web.Data.Services
 
-<h3>CrearReserva</h3>
+@inject IJSRuntime JS
+@inject IVehiculoService VehiculoService
+@inject IClienteService ClienteService
+@inject IReservaService ReservaService
+@rendermode InteractiveServer
 
 <div class="container">
     <div class="main-content">
         <div class="reservation-form">
             <!-- =================== FORMULARIO =================== -->
-            <EditForm Model="@reservaCompleta"
-                      OnValidSubmit="ConfirmarReserva"
-                      id="reservationForm">
+            <EditForm Model="@reservaCompleta" OnValidSubmit="ConfirmarReserva">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
@@ -22,19 +24,13 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="pickupDate">Fecha de Recogida</label>
-                            <input type="date"
-                                   @bind="reservaCompleta.FechaSalida"
-                                   id="pickupDate"
-                                   class="form-control"
-                                   required />
+                            <input type="date" @bind="_fechaSalida" TValue="DateOnly?" class="form-control" id="pickupDate" required />
+
                         </div>
                         <div class="form-group">
                             <label for="returnDate">Fecha de Devolución</label>
-                            <input type="date"
-                                   @bind="reservaCompleta.FechaRetorno"
-                                   id="returnDate"
-                                   class="form-control"
-                                   required />
+                            <input type="date" @bind="_fechaRetorno" TValue="DateOnly?" class="form-control" id="returnDate" required />
+
                         </div>
                     </div>
                     <div class="form-row">
@@ -62,10 +58,10 @@
                                 class="form-control"
                                 required>
                             <option value="">Selecciona una ubicación</option>
-                            <option value="oficina">Oficina</option>
-                            <option value="parqueo">Parqueo</option>
-                            <option value="recepción">Recepción</option>
-                            <option value="entrada principal">Entrada Principal</option>
+                            <option value="Oficina Central Fantino">Oficina Central Fantino</option>
+                            <option value="Sucursal Santo Domingo - Este">Sucursal Santo Domingo - Este</option>
+                            <option value="Deler San Francisco De Macoris">Deler San Francisco De Macoris</option>
+                            <option value="Heidy Motors Cotui">Heidy Motors Cotui</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -75,10 +71,10 @@
                                 class="form-control"
                                 required>
                             <option value="">Selecciona una ubicación</option>
-                            <option value="oficina">Oficina</option>
-                            <option value="parqueo">Parqueo</option>
-                            <option value="recepción">Recepción</option>
-                            <option value="entrada principal">Entrada Principal</option>
+                            <option value="Oficina Central Fantino">Oficina Central Fantino</option>
+                            <option value="Sucursal Santo Domingo - Este">Sucursal Santo Domingo - Este</option>
+                            <option value="Deler San Francisco De Macoris">Deler San Francisco De Macoris</option>
+                            <option value="Heidy Motors Cotui">Heidy Motors Cotui</option>
                         </select>
                     </div>
                 </div>
@@ -87,35 +83,53 @@
                 <div class="form-section">
                     <h3>🚙 Selecciona tu Vehículo</h3>
                     <div class="form-group">
-                        <label for="vehicleType">Tipo de Vehículo</label>
-                        <select @bind="reservaCompleta.TipoVehiculo"
+                        <label for="vehicleType">Vehículo</label>
+                        <select @bind="_tipoVehiculo"
                                 id="vehicleType"
                                 class="form-control"
                                 required>
                             <option value="">Selecciona un vehículo</option>
-                            <option value="economico">Económico</option>
-                            <option value="compacto">Compacto</option>
-                            <option value="sedan">Sedán</option>
-                            <option value="suv">SUV</option>
-                            <option value="lujo">Lujo</option>
+                            @foreach (var vehiculo in vehiculosDisponibles)
+                            {
+                                <option value="@vehiculo.Tipo">
+                                    @vehiculo.Modelo - @vehiculo.Placa - RD$@vehiculo.PrecioPorDia.ToString("N2")
+                                </option>
+                            }
                         </select>
                     </div>
                 </div>
 
+                @{
+                    var vehiculoSeleccionado = vehiculosDisponibles
+                    .FirstOrDefault(v => v.Tipo?.ToLower() == reservaCompleta.TipoVehiculo?.ToLower());
+
+                    var imagenPrincipal = vehiculoSeleccionado?.Imagenes?.FirstOrDefault();
+                }
+
+                @if (!string.IsNullOrEmpty(imagenPrincipal))
+                {
+                    <div class="vehiculo-preview">
+                        <img src="@imagenPrincipal"
+                             alt="Vista previa del vehículo"
+                             style="max-width: 70%; max-height: 190px; border-radius: 12px; margin-top: 10px;" />
+                    </div>
+                }
+                <br />
+                <br/>
                 <!-- ========== SECCIÓN INFORMACIÓN PERSONAL ========== -->
                 <div class="form-section">
                     <h3>👤 Información Personal</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="firstName">Nombre</label>
-                            <InputText @bind-Value="reservaCompleta.Nombre"
+                            <input type="text" @bind="reservaCompleta.Nombre"
                                        id="firstName"
                                        class="form-control"
                                        required />
                         </div>
                         <div class="form-group">
                             <label for="lastName">Apellido</label>
-                            <InputText @bind-Value="reservaCompleta.Apellido"
+                            <input type="text" @bind="reservaCompleta.Apellido"
                                        id="lastName"
                                        class="form-control"
                                        required />
@@ -124,31 +138,29 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <InputText @bind-Value="reservaCompleta.Email"
+                            <input type="email" @bind="reservaCompleta.Email"
                                        id="email"
                                        class="form-control"
-                                       type="email"
                                        required />
                         </div>
                         <div class="form-group">
                             <label for="phone">Teléfono</label>
-                            <InputText @bind-Value="reservaCompleta.Telefono"
+                            <input type="tel" @bind="reservaCompleta.Telefono"
                                        id="phone"
                                        class="form-control"
-                                       type="tel"
                                        required />
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="license">Número de Licencia</label>
-                        <InputText @bind-Value="reservaCompleta.NumeroLicencia"
+                        <input type="text" @bind="reservaCompleta.NumeroLicencia"
                                    id="license"
                                    class="form-control"
                                    required />
                     </div>
                     <div class="form-group">
                         <label for="comments">Comentarios Adicionales</label>
-                        <InputTextArea @bind-Value="reservaCompleta.Comentarios"
+                        <input type="text" @bind="reservaCompleta.Comentarios"
                                        id="comments"
                                        class="form-control"
                                        rows="3"
@@ -157,22 +169,12 @@
                 </div>
 
                 <div class="form-group">
-                    <button type="submit" class="submit-btn">
-                        Confirmar Reserva 🚗
-                    </button>
+                    <button type="submit" class="submit-btn">Confirmar Reserva 🚗</button>
                 </div>
             </EditForm>
 
-            @if (mostrarExito)
-            {
-                <div class="success-message" id="successMessage">
-                    <h3>🎉 ¡Reserva Confirmada!</h3>
-                    <p>
-                        Te hemos enviado los detalles de tu reserva por email.
-                        ¡Gracias por elegir HL RentaCar!
-                    </p>
-                </div>
-            }
+
+
         </div>
 
         <!-- ========== TARJETA RESUMEN ========== -->
@@ -183,14 +185,32 @@
                 <div class="summary-item"><span>Lugar Retorno:</span><span>@(reservaCompleta.LugarRetorno ?? "Sin seleccionar")</span></div>
                 <div class="summary-item"><span>Fecha Salida:</span><span>@(reservaCompleta.FechaSalida?.ToString("dd/MM/yyyy") ?? "Sin definir")</span></div>
                 <div class="summary-item"><span>Fecha Retorno:</span><span>@(reservaCompleta.FechaRetorno?.ToString("dd/MM/yyyy") ?? "Sin definir")</span></div>
-                <div class="summary-item"><span>Vehículo:</span><span>@(reservaCompleta.TipoVehiculo ?? "Sin seleccionar")</span></div>
+                @{
+                    var vehiculoSeleccionado = vehiculosDisponibles
+                    .FirstOrDefault(v => v.Tipo?.ToLower() == reservaCompleta.TipoVehiculo?.ToLower());
+                }
+                <div class="summary-item">
+                    <span>Vehículo:</span>
+                    <span>
+                        @(vehiculoSeleccionado != null
+                                                ? $"{vehiculoSeleccionado.Marca} {vehiculoSeleccionado.Modelo} - Placa: {vehiculoSeleccionado.Placa}"
+                                                : "Sin seleccionar")
+                    </span>
+                </div>
 
                 <!-- NUEVOS CAMPOS -->
                 <div class="summary-item"><span>Días:</span><span>@diasReserva</span></div>
                 <div class="summary-item"><span>Subtotal:</span><span>@subtotalMostrar</span></div>
-                <div class="summary-item"><span>Extras:</span><span>@extrasMostrar</span></div>
                 <div class="summary-item"><span>Total:</span><span>@totalMostrar</span></div>
             </div>
+            @if (mensajeExito != null)
+            {
+                <div class="success-message">
+                    <h3>🎉 ¡Reserva Confirmada!</h3>
+                    <p>@mensajeExito</p>
+                </div>
+            }
+
         </div>
     </div>
 </div>
@@ -215,10 +235,27 @@
 </script>
 
 @code {
+    private List<VehiculoDto> vehiculosDisponibles = new();
+    private ReservaDto reservas = new();
+    private string? mensajeExito;
+
+    private async Task MostrarMensajeTemporal(string mensaje)
+    {
+        mensajeExito = mensaje;
+        StateHasChanged();
+        await Task.Delay(3000); // 3 segundos
+        mensajeExito = null;
+        StateHasChanged();
+    }
+
     /* ---------- CAMPOS & ESTADO ---------- */
     private ReservaCompletaModel reservaCompleta = new();
     private bool mostrarExito = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        vehiculosDisponibles = await VehiculoService.ObtenerTodosAsync();
+    }
     /* ---------- CICLO DE VIDA ---------- */
     protected override void OnInitialized()
     {
@@ -251,12 +288,19 @@
                     reservaCompleta.FechaSalida.Value.ToDateTime(TimeOnly.MinValue)).TotalDays
             : 0;
 
-    private decimal Subtotal =>
-        diasReserva > 0 &&
-        !string.IsNullOrEmpty(reservaCompleta.TipoVehiculo) &&
-        tarifaDiaria.TryGetValue(reservaCompleta.TipoVehiculo, out var precio)
-            ? diasReserva * precio
-            : 0m;
+    private decimal Subtotal
+    {
+        get
+        {
+            if (diasReserva <= 0 || string.IsNullOrEmpty(reservaCompleta.TipoVehiculo))
+                return 0m;
+
+            var vehiculo = vehiculosDisponibles
+                .FirstOrDefault(v => v.Tipo?.ToLower() == reservaCompleta.TipoVehiculo?.ToLower());
+
+            return vehiculo != null ? diasReserva * vehiculo.PrecioPorDia : 0m;
+        }
+    }
 
     private decimal Extras => 0m;
     private decimal Total => Subtotal + Extras;
@@ -276,6 +320,7 @@
                 var reservaInicial = JsonSerializer.Deserialize<ReservaInicialModel>(json);
                 if (reservaInicial != null)
                 {
+                    reservaCompleta.TipoVehiculo = reservaInicial.TipoVehiculo;
                     reservaCompleta.LugarSalida = reservaInicial.LugarSalida;
                     reservaCompleta.LugarRetorno = reservaInicial.LugarRetorno;
                     reservaCompleta.FechaSalida = reservaInicial.FechaSalida;
@@ -295,13 +340,52 @@
 
     private async Task ConfirmarReserva()
     {
-        mostrarExito = true;
+        var vehiculo = vehiculosDisponibles
+            .FirstOrDefault(v => v.Tipo?.ToLower() == reservaCompleta.TipoVehiculo?.ToLower());
+
+        if (vehiculo == null)
+        {
+            Console.WriteLine("Vehículo no encontrado.");
+            return;
+        }
+
+        var dto = new ReservaCompletaDto
+        {
+            Nombre = reservaCompleta.Nombre!,
+            Apellido = reservaCompleta.Apellido!,
+            Email = reservaCompleta.Email!,
+            Telefono = reservaCompleta.Telefono!,
+            NumeroLicencia = reservaCompleta.NumeroLicencia!,
+            FechaHoraRecogida = reservaCompleta.FechaSalida!.Value
+                .ToDateTime(reservaCompleta.HoraSalida ?? TimeOnly.MinValue),
+            FechaHoraDevolucion = reservaCompleta.FechaRetorno!.Value
+                .ToDateTime(reservaCompleta.HoraRetorno ?? TimeOnly.MinValue),
+            LugarRecogida = reservaCompleta.LugarSalida!,
+            LugarDevolucion = reservaCompleta.LugarRetorno!,
+            Subtotal = Subtotal,
+            Extras = Extras,
+            Total = Total,
+            VehiculoId = vehiculo.Id
+        };
+
+        await ReservaService.CrearReservaCompletaAsync(dto);
+
+        // ✅ Mostrar mensaje de éxito
         await JS.InvokeVoidAsync("localStorage.removeItem", "reservaInfo");
+        reservaCompleta = new ReservaCompletaModel();
+        StateHasChanged();
+        await MostrarMensajeTemporal("Te hemos enviado los detalles de tu reserva por email. ¡Gracias por elegir HL RentaCar!");
+
     }
+
+
+
+
 
     /* ---------- MODELOS ---------- */
     public class ReservaInicialModel
     {
+        public string? TipoVehiculo { get; set; }
         public string? LugarSalida { get; set; }
         public string? LugarRetorno { get; set; }
         public DateOnly? FechaSalida { get; set; }
@@ -320,4 +404,42 @@
         public string? NumeroLicencia { get; set; }
         public string? Comentarios { get; set; }
     }
+
+    private DateOnly? _fechaSalida
+    {
+        get => reservaCompleta.FechaSalida;
+        set
+        {
+            reservaCompleta.FechaSalida = value;
+            StateHasChanged();
+        }
+    }
+
+    private DateOnly? _fechaRetorno
+    {
+        get => reservaCompleta.FechaRetorno;
+        set
+        {
+            reservaCompleta.FechaRetorno = value;
+            StateHasChanged();
+        }
+    }
+
+    private string? _tipoVehiculo
+    {
+        get => reservaCompleta.TipoVehiculo;
+        set
+        {
+            reservaCompleta.TipoVehiculo = value;
+            StateHasChanged();
+        }
+    }
+
+    private void LimpiarFormulario()
+    {
+        reservaCompleta = new ReservaCompletaModel();
+        mostrarExito = false;
+        StateHasChanged();
+    }
+
 }
