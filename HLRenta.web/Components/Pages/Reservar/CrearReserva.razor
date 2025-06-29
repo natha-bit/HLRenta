@@ -1,129 +1,323 @@
 ﻿@page "/reservar"
+@using System.Globalization
+@using System.Text.Json
+@inject IJSRuntime JS
+@rendermode InteractiveServer
+
 <h3>CrearReserva</h3>
 
-
 <div class="container">
-<div class="main-content">
-            <div class="reservation-form">
-                <form id="reservationForm">
-                    <div class="form-section">
-                        <h3>📅 Fechas y Ubicación</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="pickupDate">Fecha de Recogida</label>
-                                <input type="date" id="pickupDate" name="pickupDate" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="returnDate">Fecha de Devolución</label>
-                                <input type="date" id="returnDate" name="returnDate" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="pickupTime">Hora de Recogida</label>
-                                <input type="time" id="pickupTime" name="pickupTime" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="returnTime">Hora de Devolución</label>
-                                <input type="time" id="returnTime" name="returnTime" required>
-                            </div>
+    <div class="main-content">
+        <div class="reservation-form">
+            <!-- =================== FORMULARIO =================== -->
+            <EditForm Model="@reservaCompleta"
+                      OnValidSubmit="ConfirmarReserva"
+                      id="reservationForm">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <!-- ========== SECCIÓN FECHAS Y UBICACIÓN ========== -->
+                <div class="form-section">
+                    <h3>📅 Fechas y Ubicación</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pickupDate">Fecha de Recogida</label>
+                            <input type="date"
+                                   @bind="reservaCompleta.FechaSalida"
+                                   id="pickupDate"
+                                   class="form-control"
+                                   required />
                         </div>
                         <div class="form-group">
-                            <label for="pickupLocation">Lugar de Recogida</label>
-                            <select id="pickupLocation" name="pickupLocation" required>
-                                <option value="">Selecciona una ubicación</option>
-                                <option value="aeropuerto">Aeropuerto Internacional</option>
-                                <option value="centro">Centro de la Ciudad</option>
-                                <option value="hotel">Hotel (Entrega)</option>
-                                <option value="oficina">Oficina Principal</option>
-                            </select>
+                            <label for="returnDate">Fecha de Devolución</label>
+                            <input type="date"
+                                   @bind="reservaCompleta.FechaRetorno"
+                                   id="returnDate"
+                                   class="form-control"
+                                   required />
                         </div>
                     </div>
-
-                    <div class="form-section">
-                        <h3>🚙 Selecciona tu Vehículo</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pickupTime">Hora de Recogida</label>
+                            <input type="time"
+                                   @bind="reservaCompleta.HoraSalida"
+                                   id="pickupTime"
+                                   class="form-control"
+                                   required />
+                        </div>
+                        <div class="form-group">
+                            <label for="returnTime">Hora de Devolución</label>
+                            <input type="time"
+                                   @bind="reservaCompleta.HoraRetorno"
+                                   id="returnTime"
+                                   class="form-control"
+                                   required />
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label for="pickupLocation">Lugar de Recogida</label>
-                        <select id="pickupLocation" name="pickupLocation" required>
+                        <select @bind="reservaCompleta.LugarSalida"
+                                id="pickupLocation"
+                                class="form-control"
+                                required>
                             <option value="">Selecciona una ubicación</option>
-                            <option value="aeropuerto">Aeropuerto Internacional</option>
-                            <option value="centro">Centro de la Ciudad</option>
-                            <option value="hotel">Hotel (Entrega)</option>
-                            <option value="oficina">Oficina Principal</option>
+                            <option value="oficina">Oficina</option>
+                            <option value="parqueo">Parqueo</option>
+                            <option value="recepción">Recepción</option>
+                            <option value="entrada principal">Entrada Principal</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="returnLocation">Lugar de Retorno</label>
+                        <select @bind="reservaCompleta.LugarRetorno"
+                                id="returnLocation"
+                                class="form-control"
+                                required>
+                            <option value="">Selecciona una ubicación</option>
+                            <option value="oficina">Oficina</option>
+                            <option value="parqueo">Parqueo</option>
+                            <option value="recepción">Recepción</option>
+                            <option value="entrada principal">Entrada Principal</option>
+                        </select>
                     </div>
+                </div>
 
+                <!-- ========== SECCIÓN VEHÍCULO ========== -->
+                <div class="form-section">
+                    <h3>🚙 Selecciona tu Vehículo</h3>
+                    <div class="form-group">
+                        <label for="vehicleType">Tipo de Vehículo</label>
+                        <select @bind="reservaCompleta.TipoVehiculo"
+                                id="vehicleType"
+                                class="form-control"
+                                required>
+                            <option value="">Selecciona un vehículo</option>
+                            <option value="economico">Económico</option>
+                            <option value="compacto">Compacto</option>
+                            <option value="sedan">Sedán</option>
+                            <option value="suv">SUV</option>
+                            <option value="lujo">Lujo</option>
+                        </select>
+                    </div>
+                </div>
 
-                    <div class="form-section">
-                        <h3>👤 Información Personal</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="firstName">Nombre</label>
-                                <input type="text" id="firstName" name="firstName" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="lastName">Apellido</label>
-                                <input type="text" id="lastName" name="lastName" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="email">Email</label>
-                                <input type="email" id="email" name="email" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="phone">Teléfono</label>
-                                <input type="tel" id="phone" name="phone" required>
-                            </div>
+                <!-- ========== SECCIÓN INFORMACIÓN PERSONAL ========== -->
+                <div class="form-section">
+                    <h3>👤 Información Personal</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">Nombre</label>
+                            <InputText @bind-Value="reservaCompleta.Nombre"
+                                       id="firstName"
+                                       class="form-control"
+                                       required />
                         </div>
                         <div class="form-group">
-                            <label for="license">Número de Licencia</label>
-                            <input type="text" id="license" name="license" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="comments">Comentarios Adicionales</label>
-                            <textarea id="comments" name="comments" rows="3" placeholder="Alguna solicitud especial..."></textarea>
+                            <label for="lastName">Apellido</label>
+                            <InputText @bind-Value="reservaCompleta.Apellido"
+                                       id="lastName"
+                                       class="form-control"
+                                       required />
                         </div>
                     </div>
-                </form>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <InputText @bind-Value="reservaCompleta.Email"
+                                       id="email"
+                                       class="form-control"
+                                       type="email"
+                                       required />
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Teléfono</label>
+                            <InputText @bind-Value="reservaCompleta.Telefono"
+                                       id="phone"
+                                       class="form-control"
+                                       type="tel"
+                                       required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="license">Número de Licencia</label>
+                        <InputText @bind-Value="reservaCompleta.NumeroLicencia"
+                                   id="license"
+                                   class="form-control"
+                                   required />
+                    </div>
+                    <div class="form-group">
+                        <label for="comments">Comentarios Adicionales</label>
+                        <InputTextArea @bind-Value="reservaCompleta.Comentarios"
+                                       id="comments"
+                                       class="form-control"
+                                       rows="3"
+                                       placeholder="Alguna solicitud especial..." />
+                    </div>
+                </div>
 
+                <div class="form-group">
+                    <button type="submit" class="submit-btn">
+                        Confirmar Reserva 🚗
+                    </button>
+                </div>
+            </EditForm>
+
+            @if (mostrarExito)
+            {
                 <div class="success-message" id="successMessage">
                     <h3>🎉 ¡Reserva Confirmada!</h3>
-                    <p>Te hemos enviado los detalles de tu reserva por email. ¡Gracias por elegir HL RentaCar!</p>
+                    <p>
+                        Te hemos enviado los detalles de tu reserva por email.
+                        ¡Gracias por elegir HL RentaCar!
+                    </p>
                 </div>
-            </div>
+            }
+        </div>
 
-            <div class="summary-card">
-                <h3>📋 Resumen de Reserva</h3>
-                <div id="reservationSummary">
-                    <div class="summary-item">
-                        <span>Vehículo:</span>
-                        <span id="selectedVehicle">Sin seleccionar</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Días:</span>
-                        <span id="totalDays">0</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Subtotal:</span>
-                        <span id="subtotal">$0</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Extras:</span>
-                        <span id="extrasTotal">$0</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Total:</span>
-                        <span id="grandTotal">$0</span>
-                    </div>
-                </div>
-                <button type="submit" form="reservationForm" class="submit-btn" id="reserveBtn">
-                    Confirmar Reserva 🚗
-                </button>
+        <!-- ========== TARJETA RESUMEN ========== -->
+        <div class="summary-card">
+            <h3>📋 Resumen de Reserva</h3>
+            <div id="reservationSummary">
+                <div class="summary-item"><span>Lugar Salida:</span><span>@(reservaCompleta.LugarSalida ?? "Sin seleccionar")</span></div>
+                <div class="summary-item"><span>Lugar Retorno:</span><span>@(reservaCompleta.LugarRetorno ?? "Sin seleccionar")</span></div>
+                <div class="summary-item"><span>Fecha Salida:</span><span>@(reservaCompleta.FechaSalida?.ToString("dd/MM/yyyy") ?? "Sin definir")</span></div>
+                <div class="summary-item"><span>Fecha Retorno:</span><span>@(reservaCompleta.FechaRetorno?.ToString("dd/MM/yyyy") ?? "Sin definir")</span></div>
+                <div class="summary-item"><span>Vehículo:</span><span>@(reservaCompleta.TipoVehiculo ?? "Sin seleccionar")</span></div>
+
+                <!-- NUEVOS CAMPOS -->
+                <div class="summary-item"><span>Días:</span><span>@diasReserva</span></div>
+                <div class="summary-item"><span>Subtotal:</span><span>@subtotalMostrar</span></div>
+                <div class="summary-item"><span>Extras:</span><span>@extrasMostrar</span></div>
+                <div class="summary-item"><span>Total:</span><span>@totalMostrar</span></div>
             </div>
         </div>
+    </div>
 </div>
-@code {
 
+<script>
+    /* ========= LIMPIAR FORMULARIO AL SALIR / RECARGAR ========= */
+    const resetForm = () => {
+        const form = document.getElementById('reservationForm');
+        if (form) form.reset();
+    };
+
+    /* Recargar, cerrar pestaña o navegar fuera */
+    window.addEventListener('beforeunload', () => {
+        localStorage.removeItem('reservaInfo');
+        resetForm();
+    });
+
+    /* Volver con botón “Atrás” (Back-Forward Cache) */
+    window.addEventListener('pageshow', e => {
+        if (e.persisted) resetForm();
+    });
+</script>
+
+@code {
+    /* ---------- CAMPOS & ESTADO ---------- */
+    private ReservaCompletaModel reservaCompleta = new();
+    private bool mostrarExito = false;
+
+    /* ---------- CICLO DE VIDA ---------- */
+    protected override void OnInitialized()
+    {
+        // Reseteo inicial
+        reservaCompleta = new ReservaCompletaModel();
+        mostrarExito = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CargarDatosReserva();
+        }
+    }
+
+    /* ---------- PARÁMETROS Y CÁLCULOS ---------- */
+    private readonly Dictionary<string, decimal> tarifaDiaria = new()
+    {
+        ["economico"] = 35m,
+        ["compacto"] = 45m,
+        ["sedan"] = 55m,
+        ["suv"] = 70m,
+        ["lujo"] = 120m
+    };
+
+    private int diasReserva =>
+        reservaCompleta.FechaSalida.HasValue && reservaCompleta.FechaRetorno.HasValue
+            ? (int)(reservaCompleta.FechaRetorno.Value.ToDateTime(TimeOnly.MinValue) -
+                    reservaCompleta.FechaSalida.Value.ToDateTime(TimeOnly.MinValue)).TotalDays
+            : 0;
+
+    private decimal Subtotal =>
+        diasReserva > 0 &&
+        !string.IsNullOrEmpty(reservaCompleta.TipoVehiculo) &&
+        tarifaDiaria.TryGetValue(reservaCompleta.TipoVehiculo, out var precio)
+            ? diasReserva * precio
+            : 0m;
+
+    private decimal Extras => 0m;
+    private decimal Total => Subtotal + Extras;
+
+    private string subtotalMostrar => Subtotal.ToString("C", new CultureInfo("es-DO"));
+    private string extrasMostrar => Extras.ToString("C", new CultureInfo("es-DO"));
+    private string totalMostrar => Total.ToString("C", new CultureInfo("es-DO"));
+
+    /* ---------- ACCIONES ---------- */
+    private async Task CargarDatosReserva()
+    {
+        try
+        {
+            var json = await JS.InvokeAsync<string>("localStorage.getItem", "reservaInfo");
+            if (!string.IsNullOrEmpty(json))
+            {
+                var reservaInicial = JsonSerializer.Deserialize<ReservaInicialModel>(json);
+                if (reservaInicial != null)
+                {
+                    reservaCompleta.LugarSalida = reservaInicial.LugarSalida;
+                    reservaCompleta.LugarRetorno = reservaInicial.LugarRetorno;
+                    reservaCompleta.FechaSalida = reservaInicial.FechaSalida;
+                    reservaCompleta.FechaRetorno = reservaInicial.FechaRetorno;
+                    reservaCompleta.HoraSalida = reservaInicial.HoraSalida;
+                    reservaCompleta.HoraRetorno = reservaInicial.HoraRetorno;
+
+                    StateHasChanged();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cargando datos: {ex.Message}");
+        }
+    }
+
+    private async Task ConfirmarReserva()
+    {
+        mostrarExito = true;
+        await JS.InvokeVoidAsync("localStorage.removeItem", "reservaInfo");
+    }
+
+    /* ---------- MODELOS ---------- */
+    public class ReservaInicialModel
+    {
+        public string? LugarSalida { get; set; }
+        public string? LugarRetorno { get; set; }
+        public DateOnly? FechaSalida { get; set; }
+        public DateOnly? FechaRetorno { get; set; }
+        public TimeOnly? HoraSalida { get; set; }
+        public TimeOnly? HoraRetorno { get; set; }
+    }
+
+    public class ReservaCompletaModel : ReservaInicialModel
+    {
+        public string? TipoVehiculo { get; set; }
+        public string? Nombre { get; set; }
+        public string? Apellido { get; set; }
+        public string? Email { get; set; }
+        public string? Telefono { get; set; }
+        public string? NumeroLicencia { get; set; }
+        public string? Comentarios { get; set; }
+    }
 }

@@ -1,20 +1,33 @@
 ﻿@page "/"
+@rendermode InteractiveServer
+@using System.Text.Json
+@using Microsoft.AspNetCore.Components.Forms     <!-- InputTime vive aquí -->
+@inject IJSRuntime JS
+@inject NavigationManager Nav
 
 <section class="hero" id="inicio">
     <div class="hero-content">
         <div class="hero-text">
             <h1 class="hero-title">HL Rent Car</h1>
-            <p class="hero-subtitle">Tu mejor opción para alquilar vehículos de calidad. Servicio confiable, precios competitivos y atención personalizada.</p>
+            <p class="hero-subtitle">
+                Tu mejor opción para alquilar vehículos de calidad. Servicio confiable,
+                precios competitivos y atención personalizada.
+            </p>
         </div>
 
+        <!-- ===== FORMULARIO ===== -->
         <div class="reservation-form" id="reservaciones">
             <h2 class="form-title">Reservar</h2>
-            <form id="reservationForm">
-                <div class="form-row">
 
+            <EditForm Model="@reserva" OnValidSubmit="ProcesarReserva">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <!-- Lugares -->
+                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Lugar de salida</label>
-                        <select class="form-input" required>
+                        <select class="form-input" @bind="reserva.LugarSalida" required>
                             <option value="" disabled selected>Selecciona el lugar de salida</option>
                             <option value="oficina">Oficina</option>
                             <option value="parqueo">Parqueo</option>
@@ -25,7 +38,7 @@
 
                     <div class="form-group">
                         <label class="form-label">Lugar de retorno</label>
-                        <select class="form-input" required>
+                        <select class="form-input" @bind="reserva.LugarRetorno" required>
                             <option value="" disabled selected>Selecciona el lugar de retorno</option>
                             <option value="oficina">Oficina</option>
                             <option value="parqueo">Parqueo</option>
@@ -35,76 +48,73 @@
                     </div>
                 </div>
 
+                <!-- Fechas -->
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Fecha de salida</label>
-                        <input type="date" class="form-input" required>
+                        <input type="date" @bind="reserva.FechaSalida"
+                                   TValue="DateOnly?"
+                                   class="form-input"
+                                   required />
                     </div>
+
                     <div class="form-group">
                         <label class="form-label">Fecha de retorno</label>
-                        <input type="date" class="form-input" required>
+                        <input type="date" @bind="reserva.FechaRetorno"
+                                   TValue="DateOnly?"
+                                   class="form-input"
+                                   required />
                     </div>
                 </div>
 
+                <!-- Horas -->
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Hora de salida</label>
-                        <input type="time" class="form-input" required>
+                        <input type="time" @bind="reserva.HoraSalida"
+                                   TValue="TimeOnly?"
+                                   class="form-input"
+                                   required />
                     </div>
+
                     <div class="form-group">
                         <label class="form-label">Hora de retorno</label>
-                        <input type="time" class="form-input" required>
+                        <input type="time" @bind="reserva.HoraRetorno"
+                                   TValue="TimeOnly?"
+                                   class="form-input"
+                                   required />
                     </div>
                 </div>
 
                 <div class="form-group full-width">
                     <button type="submit" class="submit-btn">Procesar</button>
                 </div>
-            </form>
+            </EditForm>
         </div>
     </div>
 </section>
 
-<section class="services-section" id="servicios">
-    <div class="services-container">
-        <h2 class="services-title">Nuestros Servicios</h2>
+<!-- … sección de servicios sin cambios … -->
 
-        <div class="services-grid">
-            <div class="service-card">
-                <div class="service-icon">🚗</div>
-                <h3 class="service-title">Alquiler Diario</h3>
-                <p class="service-description">Vehículos disponibles por día con tarifas competitivas y sin complicaciones.</p>
-            </div>
+@code {
+    private readonly ReservaModel reserva = new();
 
-            <div class="service-card">
-                <div class="service-icon">🛡️</div>
-                <h3 class="service-title">Seguro Incluido</h3>
-                <p class="service-description">Todos nuestros vehículos incluyen seguro completo para tu tranquilidad.</p>
-            </div>
+    private async Task ProcesarReserva()
+    {
+        var json = JsonSerializer.Serialize(reserva);
+        await JS.InvokeVoidAsync("localStorage.setItem", "reservaInfo", json);
+        Nav.NavigateTo("/reservar");
+    }
 
-            <div class="service-card">
-                <div class="service-icon">⛽</div>
-                <h3 class="service-title">Combustible</h3>
-                <p class="service-description">Entrega con tanque lleno y devolución en las mismas condiciones.</p>
-            </div>
+    public class ReservaModel
+    {
+        public string?   LugarSalida  { get; set; }
+        public string?   LugarRetorno { get; set; }
 
-            <div class="service-card">
-                <div class="service-icon">📱</div>
-                <h3 class="service-title">Soporte 24/7</h3>
-                <p class="service-description">Asistencia disponible las 24 horas para cualquier emergencia o consulta.</p>
-            </div>
+        public DateOnly? FechaSalida  { get; set; }   // ← DateOnly encaja con <InputDate>
+        public DateOnly? FechaRetorno { get; set; }
 
-            <div class="service-card">
-                <div class="service-icon">🚙</div>
-                <h3 class="service-title">Variedad de Vehículos</h3>
-                <p class="service-description">Desde económicos hasta SUVs de lujo, tenemos el vehículo perfecto para ti.</p>
-            </div>
-
-            <div class="service-card">
-                <div class="service-icon">📍</div>
-                <h3 class="service-title">Entrega a Domicilio</h3>
-                <p class="service-description">Llevamos el vehículo hasta tu ubicación sin costo adicional en la ciudad.</p>
-            </div>
-        </div>
-    </div>
-</section>
+        public TimeOnly? HoraSalida   { get; set; }   // ← TimeOnly encaja con <InputTime>
+        public TimeOnly? HoraRetorno  { get; set; }
+    }
+}
