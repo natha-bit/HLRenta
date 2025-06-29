@@ -1,85 +1,244 @@
-﻿@page "/agregar" 
+﻿@page "/agregar"
+@using RentaCAR.Dtos
+@using HLRenta.web.Data.Services
+@using Microsoft.AspNetCore.Components.Forms
+@inject IWebHostEnvironment env
+@inject IVehiculoService vehiculoService
+@rendermode InteractiveServer
 
 <div class="form-container">
-            <div class="success-message" id="successMessage">
-                ✅ Vehículo registrado exitosamente
-            </div>
-
-            <form id="vehicleForm">
-                <div class="form-group">
-                    <label for="marca">Marca <span class="required">*</span></label>
-                    <select id="marca" name="marca" required>
-                        <option value="">Seleccionar marca</option>
-                        <option value="Toyota">Toyota</option>
-                        <option value="Honda">Honda</option>
-                        <option value="Ford">Ford</option>
-                        <option value="Chevrolet">Chevrolet</option>
-                        <option value="Nissan">Nissan</option>
-                        <option value="Hyundai">Hyundai</option>
-                        <option value="Kia">Kia</option>
-                        <option value="Volkswagen">Volkswagen</option>
-                        <option value="Mazda">Mazda</option>
-                        <option value="BMW">BMW</option>
-                        <option value="Mercedes-Benz">Mercedes-Benz</option>
-                        <option value="Audi">Audi</option>
-                        <option value="Otro">Otro</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="modelo">Modelo <span class="required">*</span></label>
-                    <input type="text" id="modelo" name="modelo" required placeholder="Ej: Corolla, Civic, Focus">
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="año">Año <span class="required">*</span></label>
-                        <input type="number" id="año" name="año" min="2000" max="2025" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="color">Color</label>
-                        <input type="text" id="color" name="color" placeholder="Ej: Blanco, Negro">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="placa">Número de Placa <span class="required">*</span></label>
-                    <input type="text" id="placa" name="placa" required placeholder="Ej: ABC-123" style="text-transform: uppercase;">
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="tipo">Tipo de Vehículo <span class="required">*</span></label>
-                        <select id="tipo" name="tipo" required>
-                            <option value="">Seleccionar tipo</option>
-                            <option value="Sedán">Sedán</option>
-                            <option value="SUV">SUV</option>
-                            <option value="Hatchback">Hatchback</option>
-                            <option value="Pickup">Pickup</option>
-                            <option value="Convertible">Convertible</option>
-                            <option value="Minivan">Minivan</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="precio">Precio por Día (USD) <span class="required">*</span></label>
-                        <input type="number" id="precio" name="precio" min="1" step="0.01" required placeholder="50.00">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Imágenes del Vehículo <span class="required">*</span></label>
-                    <div class="image-upload-container" onclick="document.getElementById('imagenes').click()">
-                        <input type="file" id="imagenes" name="imagenes" multiple accept="image/*" required>
-                        <div class="upload-icon">📸</div>
-                        <div class="upload-text">Subir Imágenes</div>
-                        <div class="upload-subtext">Haz clic aquí o arrastra las imágenes</div>
-                    </div>
-                    <div class="image-preview" id="imagePreview"></div>
-                </div>
-
-                <div class="btn-container">
-                    <button type="button" class="btn btn-secondary" onclick="resetForm()">Limpiar</button>
-                    <button type="submit" class="btn btn-primary">Registrar Vehículo</button>
-                </div>
-            </form>
+    @if (!string.IsNullOrEmpty(mensajeExito))
+    {
+        <div class="success-message" id="successMessage">
+            @mensajeExito
         </div>
+    }
+
+    <form @onsubmit="GuardarVehiculo" @onsubmit:preventDefault="true">
+
+        <div class="form-group">
+            <label for="marca">Marca <span class="required">*</span></label>
+            <select id="marca" class="form-control" @bind="vehiculo.Marca" required>
+                <option value="">Seleccionar marca</option>
+                @foreach (var marca in marcasDisponibles)
+                {
+                    <option value="@marca">@marca</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="modelo">Modelo <span class="required">*</span></label>
+            <input type="text" id="modelo" class="form-control" @bind="vehiculo.Modelo"
+                   placeholder="Ej: Corolla, Civic, Focus" required />
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="año">Año <span class="required">*</span></label>
+                <input type="number" id="año" class="form-control" @bind="vehiculo.Anio" min="2000" max="2025" required />
+            </div>
+            <div class="form-group">
+                <label for="color">Color</label>
+                <input type="text" id="color" class="form-control" @bind="vehiculo.Color" placeholder="Ej: Blanco, Negro" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="placa">Número de Placa <span class="required">*</span></label>
+            <input type="text" id="placa" class="form-control" style="text-transform: uppercase;"
+                   @bind="vehiculo.Placa" placeholder="Ej: ABC-123" required />
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="tipo">Tipo de Vehículo <span class="required">*</span></label>
+                <select id="tipo" class="form-control" @bind="vehiculo.Tipo" required>
+                    <option value="">Seleccionar tipo</option>
+                    @foreach (var tipo in tiposVehiculo)
+                    {
+                        <option value="@tipo">@tipo</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="precio">Precio por Día (USD) <span class="required">*</span></label>
+                <input type="number" id="precio" class="form-control" @bind="vehiculo.PrecioPorDia"
+                       step="0.01" min="1" placeholder="50.00" required />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Imágenes del Vehículo <span class="required">*</span></label>
+            <label for="imagenes" class="image-upload-container">
+                @if (previews.Count == 0)
+                {
+                    <div class="upload-icon">+</div>
+                    <div class="upload-text">Subir Imágenes</div>
+                    <div class="upload-subtext">Haz clic aquí o arrastra las imágenes</div>
+                }
+                else
+                {
+                    @foreach (var img in previews)
+                    {
+                        <img src="@img" class="image-preview-inside" />
+                    }
+                }
+            </label>
+            <InputFile id="imagenes" name="imagenes" multiple accept="image/*"
+                       class="input-file-hidden" OnChange="OnInputFileChange" />
+        </div>
+
+        <div class="btn-container">
+            <button type="button" class="btn btn-secondary" @onclick="LimpiarFormulario">Limpiar</button>
+            <button type="submit" class="btn btn-primary">Registrar Vehículo</button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .image-upload-container {
+        border: 2px dashed #ccc;
+        padding: 30px;
+        text-align: center;
+        cursor: pointer;
+        border-radius: 10px;
+        position: relative;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .upload-icon {
+        font-size: 40px;
+        color: #999;
+    }
+
+    .upload-text {
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    .upload-subtext {
+        font-size: 14px;
+        color: #666;
+    }
+
+    .input-file-hidden {
+        display: none;
+    }
+
+    .image-preview-inside {
+        max-height: 150px;
+        max-width: 100%;
+        border-radius: 8px;
+        object-fit: contain;
+    }
+</style>
+
+@code {
+    private VehiculoDto vehiculo = new();
+    private List<IBrowserFile> archivosCargados = new();
+    private List<string> previews = new();
+    private string? mensajeExito;
+
+    private List<string> marcasDisponibles = new() {
+        "Toyota", "Honda", "Ford", "Chevrolet", "Nissan", "Hyundai",
+        "Kia", "Volkswagen", "Mazda", "BMW", "Mercedes-Benz", "Audi", "Otro"
+    };
+
+    private List<string> tiposVehiculo = new() {
+        "Sedán", "SUV", "Hatchback", "Pickup", "Convertible", "Minivan"
+    };
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            archivosCargados = e.GetMultipleFiles().ToList();
+            previews.Clear();
+
+            foreach (var file in archivosCargados)
+            {
+                var buffer = new byte[file.Size];
+                await file.OpenReadStream().ReadAsync(buffer);
+                var base64 = Convert.ToBase64String(buffer);
+                previews.Add($"data:{file.ContentType};base64,{base64}");
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeExito = $"❌ Error al cargar imágenes: {ex.Message}";
+        }
+    }
+
+    private async Task GuardarVehiculo()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(vehiculo.Marca) ||
+                string.IsNullOrEmpty(vehiculo.Modelo) ||
+                string.IsNullOrEmpty(vehiculo.Placa) ||
+                string.IsNullOrEmpty(vehiculo.Tipo) ||
+                vehiculo.Anio <= 0 ||
+                vehiculo.PrecioPorDia <= 0)
+            {
+                mensajeExito = "❌ Por favor complete todos los campos requeridos.";
+                return;
+            }
+
+            if (!archivosCargados.Any())
+            {
+                mensajeExito = "❌ Debe seleccionar al menos una imagen.";
+                return;
+            }
+
+            string carpeta = Path.Combine(env.WebRootPath, "imgVehiculos");
+            if (!Directory.Exists(carpeta))
+                Directory.CreateDirectory(carpeta);
+
+            var rutas = new List<string>();
+
+            foreach (var file in archivosCargados)
+            {
+                var nombre = $"{Guid.NewGuid()}{Path.GetExtension(file.Name)}";
+                var rutaFisica = Path.Combine(carpeta, nombre);
+
+                using var stream = new FileStream(rutaFisica, FileMode.Create);
+                await file.OpenReadStream().CopyToAsync(stream);
+
+                rutas.Add($"imgVehiculos/{nombre}");
+            }
+
+            vehiculo.Imagenes = rutas;
+
+            bool guardado = await vehiculoService.CrearAsync(vehiculo);
+
+            if (guardado)
+            {
+                mensajeExito = "✅ Vehículo guardado exitosamente en la base de datos.";
+                await Task.Delay(3000);
+                LimpiarFormulario();
+            }
+            else
+            {
+                mensajeExito = "❌ Error: No se pudo guardar el vehículo en la base de datos.";
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeExito = $"❌ Error al guardar el vehículo: {ex.Message}";
+        }
+    }
+
+    private void LimpiarFormulario()
+    {
+        vehiculo = new();
+        archivosCargados.Clear();
+        previews.Clear();
+        mensajeExito = null;
+        StateHasChanged();
+    }
+}

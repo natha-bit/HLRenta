@@ -1,0 +1,123 @@
+﻿using HLRenta.web.Data;
+using Microsoft.EntityFrameworkCore;
+using RentaCAR.Dtos;
+using RentaCAR.Entities;
+
+namespace RentaCAR.Services
+{
+    public interface IReservaService
+    {
+        Task<List<ReservaDto>> ObtenerTodasAsync();
+        Task<ReservaDto> ObtenerPorIdAsync(int id);
+        Task CrearAsync(ReservaDto dto);
+        Task<bool> ActualizarAsync(int id, ReservaDto dto);
+        Task<bool> EliminarAsync(int id);
+    }
+
+    public class ReservaService : IReservaService
+    {
+        private readonly ApplicationDbContext _context;
+
+        public ReservaService(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<List<ReservaDto>> ObtenerTodasAsync()
+        {
+            return await _context.Reservas
+                .Include(r => r.Cliente)
+                .Include(r => r.Vehiculo)
+                .Select(r => new ReservaDto
+                {
+                    Id = r.Id,
+                    FechaHoraRecogida = r.FechaHoraRecogida,
+                    FechaHoraDevolucion = r.FechaHoraDevolucion,
+                    LugarRecogida = r.LugarRecogida,
+                    LugarDevolucion = r.LugarDevolucion,
+                    Subtotal = r.Subtotal,
+                    Extras = r.Extras,
+                    Total = r.Total,
+                    ClienteId = r.ClienteId,
+                    ClienteNombre = r.Cliente.Nombre,
+                    VehiculoId = r.VehiculoId,
+                    VehiculoModelo = r.Vehiculo.Modelo
+                }).ToListAsync();
+        }
+
+        public async Task<ReservaDto> ObtenerPorIdAsync(int id)
+        {
+            var r = await _context.Reservas
+                .Include(r => r.Cliente)
+                .Include(r => r.Vehiculo)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (r == null) return null;
+
+            return new ReservaDto
+            {
+                Id = r.Id,
+                FechaHoraRecogida = r.FechaHoraRecogida,
+                FechaHoraDevolucion = r.FechaHoraDevolucion,
+                LugarRecogida = r.LugarRecogida,
+                LugarDevolucion = r.LugarDevolucion,
+                Subtotal = r.Subtotal,
+                Extras = r.Extras,
+                Total = r.Total,
+                ClienteId = r.ClienteId,
+                ClienteNombre = r.Cliente.Nombre,
+                VehiculoId = r.VehiculoId,
+                VehiculoModelo = r.Vehiculo.Modelo
+            };
+        }
+
+        public async Task CrearAsync(ReservaDto dto)
+        {
+            var r = new Reserva
+            {
+                FechaHoraRecogida = dto.FechaHoraRecogida,
+                FechaHoraDevolucion = dto.FechaHoraDevolucion,
+                LugarRecogida = dto.LugarRecogida,
+                LugarDevolucion = dto.LugarDevolucion,
+                Subtotal = dto.Subtotal,
+                Extras = dto.Extras,
+                Total = dto.Total,
+                ClienteId = dto.ClienteId,
+                VehiculoId = dto.VehiculoId
+            };
+
+            _context.Reservas.Add(r);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> ActualizarAsync(int id, ReservaDto dto)
+        {
+            var r = await _context.Reservas.FindAsync(id);
+            if (r == null) return false;
+
+            r.FechaHoraRecogida = dto.FechaHoraRecogida;
+            r.FechaHoraDevolucion = dto.FechaHoraDevolucion;
+            r.LugarRecogida = dto.LugarRecogida;
+            r.LugarDevolucion = dto.LugarDevolucion;
+            r.Subtotal = dto.Subtotal;
+            r.Extras = dto.Extras;
+            r.Total = dto.Total;
+            r.ClienteId = dto.ClienteId;
+            r.VehiculoId = dto.VehiculoId;
+
+            _context.Reservas.Update(r);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> EliminarAsync(int id)
+        {
+            var r = await _context.Reservas.FindAsync(id);
+            if (r == null) return false;
+
+            _context.Reservas.Remove(r);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+    }
+}
