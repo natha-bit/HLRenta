@@ -12,6 +12,8 @@ namespace HLRenta.web.Data.Services
         Task<bool> ActualizarAsync(int id, ReservaDto dto);
         Task<bool> EliminarAsync(int id);
         Task<List<ReservaDto>> ObtenerPorRangoAsync(DateTime fechaInicio, DateTime fechaFin);
+        Task<ReservaDto> ObtenerPorLicenciaAsync(string numeroLicencia);
+
 
         Task CrearReservaCompletaAsync(ReservaCompletaDto dto);
     }
@@ -192,9 +194,49 @@ namespace HLRenta.web.Data.Services
                 Estado = "Pendiente"
             };
 
+
             _context.Reservas.Add(reserva);
             await _context.SaveChangesAsync();
         }
+        public async Task<ReservaDto>ObtenerPorLicenciaAsync(string numeroLicencia)
+        {
+            if (string.IsNullOrWhiteSpace(numeroLicencia))
+                return null;
+
+            var cliente = await _context.Clientes
+                .FirstOrDefaultAsync(c => c.NumeroLicencia.ToLower().Trim() == numeroLicencia.ToLower().Trim());
+
+            if (cliente == null)
+                return null;
+
+            var reserva = await _context.Reservas
+                .Include(r => r.Vehiculo)
+                .Where(r => r.ClienteId == cliente.Id)
+                .OrderByDescending(r => r.FechaHoraRecogida)
+                .FirstOrDefaultAsync();
+
+            if (reserva == null)
+                return null;
+
+            return new ReservaDto
+            {
+                Id = reserva.Id,
+                FechaHoraRecogida = reserva.FechaHoraRecogida,
+                FechaHoraDevolucion = reserva.FechaHoraDevolucion,
+                Estado = reserva.Estado,
+                LugarRecogida = reserva.LugarRecogida,
+                LugarDevolucion = reserva.LugarDevolucion,
+                Subtotal = reserva.Subtotal,
+                Extras = reserva.Extras,
+                Total = reserva.Total,
+                ClienteId = cliente.Id,
+                ClienteNombre = $"{cliente.Nombre} {cliente.Apellido}",
+                VehiculoId = reserva.VehiculoId,
+                VehiculoModelo = reserva.Vehiculo?.Modelo ?? "No asignado"
+            };
+        }
+
+
 
 
 

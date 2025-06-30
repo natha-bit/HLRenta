@@ -12,6 +12,8 @@ namespace HLRenta.web.Data.Services
         Task<bool> ActualizarAsync(int id, ClienteDto dto);
         Task<bool> EliminarAsync(int id);
         Task<bool> ExisteLicenciaAsync(string numeroLicencia);
+        Task<ClienteDto> ObtenerPorLicenciaAsync(string numeroLicencia);
+
     }
 
     public class ClienteService : IClienteService
@@ -98,5 +100,26 @@ namespace HLRenta.web.Data.Services
         {
             return await _context.Clientes.AnyAsync(c => c.NumeroLicencia == numeroLicencia);
         }
+        public async Task<ClienteDto> ObtenerPorLicenciaAsync(string numeroLicencia)
+        {
+            var cliente = await _context.Clientes
+                .FirstOrDefaultAsync(c => c.NumeroLicencia.Trim().ToLower() == numeroLicencia.Trim().ToLower());
+
+            if (cliente == null) return null;
+
+            return new ClienteDto
+            {
+                Id = cliente.Id,
+                Nombre = cliente.Nombre,
+                Apellido = cliente.Apellido,
+                Email = cliente.Email,
+                Telefono = cliente.Telefono,
+                NumeroLicencia = cliente.NumeroLicencia
+            };
+        }
+
+
+
+
     }
 }

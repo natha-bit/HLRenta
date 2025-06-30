@@ -1,153 +1,135 @@
 ﻿@page "/estado"
-<h3>Estado</h3>
+@using System.ComponentModel.DataAnnotations
+@using HLRenta.web.Data.Services
+@using HLRenta.web.Data.Dtos
+@inject IClienteService clienteService
+@inject IReservaService reservaService
+@rendermode InteractiveServer
+
+<h3 class="text-center text-primary">🔍 Verificar Licencia</h3>
 
 <div class="search-card">
-            <form>
-                <div class="form-group">
-                    <label for="reservationCode">Código de Reserva</label>
-                    <input type="text" id="reservationCode" placeholder="Ej: HL123456" required>
-                </div>
-                <div class="form-group">
-                    <label for="lastName">Apellido del Cliente</label>
-                    <input type="text" id="lastName" placeholder="Ingresa tu apellido" required>
-                </div>
-                <button type="submit" class="search-btn">🔍 Buscar Reserva</button>
-            </form>
+    <EditForm Model="@busqueda" OnValidSubmit="VerificarLicencia" FormName="formVerificacion">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="licencia"><strong>Número de Licencia</strong></label>
+            <InputText id="licencia" class="form-control" @bind-Value="busqueda.NumeroLicencia" />
         </div>
 
-        <div class="reservation-details">
-            <div class="reservation-header">
-                <h2>Reserva HL123456</h2>
-                <div class="status-badge">✅ Confirmada</div>
+        <button type="submit" class="btn btn-primary mt-2">
+            <span class="me-1">🔍</span> Verificar
+        </button>
+    </EditForm>
+</div>
+@if (reserva != null)
+{
+    <div class="reservation-details mt-4">
+        <div class="reservation-header">
+            <h2>Reserva ID: @reserva.Id</h2>
+            <div class="status-badge">✅ @reserva.Estado</div>
+        </div>
+
+        <img src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=250&fit=crop&auto=format"
+             alt="Vehículo" class="car-image" />
+
+        <div class="detail-grid">
+            <div class="detail-section">
+                <h3>👤 Información del Cliente</h3>
+                <div class="detail-item"><span class="detail-label">Nombre:</span> @reserva.ClienteNombre</div>
+                <div class="detail-item"><span class="detail-label">Licencia:</span> @busqueda.NumeroLicencia</div>
             </div>
 
-            <img src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=250&fit=crop&auto=format" 
-                 alt="Toyota Corolla 2024" class="car-image">
+            <div class="detail-section">
+                <h3>🚗 Vehículo</h3>
+                <div class="detail-item"><span class="detail-label">Modelo:</span> @reserva.VehiculoModelo</div>
 
-            <div class="detail-grid">
-                <div class="detail-section">
-                    <h3>👤 Información del Cliente</h3>
-                    <div class="detail-item">
-                        <span class="detail-label">Nombre:</span>
-                        <span class="detail-value">María García</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Email:</span>
-                        <span class="detail-value">maria.garcia@email.com</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Teléfono:</span>
-                        <span class="detail-value">+1 809-555-0123</span>
-                    </div>
-                </div>
-
-                <div class="detail-section">
-                    <h3>🚗 Vehículo</h3>
-                    <div class="detail-item">
-                        <span class="detail-label">Modelo:</span>
-                        <span class="detail-value">Toyota Corolla 2024</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Categoría:</span>
-                        <span class="detail-value">Compacto</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Placa:</span>
-                        <span class="detail-value">ABC-1234</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Color:</span>
-                        <span class="detail-value">Blanco</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Transmisión:</span>
-                        <span class="detail-value">Automática</span>
-                    </div>
-                </div>
-
-                <div class="detail-section">
-                    <h3>📅 Fechas de Alquiler</h3>
-                    <div class="detail-item">
-                        <span class="detail-label">Recogida:</span>
-                        <span class="detail-value">Martes, 1 de Julio de 2025 - 10:00 AM</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Devolución:</span>
-                        <span class="detail-value">Lunes, 7 de Julio de 2025 - 10:00 AM</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Duración:</span>
-                        <span class="detail-value">6 días</span>
-                    </div>
-                </div>
-
-                <div class="detail-section">
-                    <h3>📍 Ubicaciones</h3>
-                    <div class="detail-item">
-                        <span class="detail-label">Recogida:</span>
-                        <span class="detail-value">Aeropuerto Internacional Las Américas</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Devolución:</span>
-                        <span class="detail-value">Aeropuerto Internacional Las Américas</span>
-                    </div>
-                </div>
-
-                <div class="detail-section">
-                    <h3>💰 Detalles de Precio</h3>
-                    <div class="detail-item">
-                        <span class="detail-label">Tarifa diaria:</span>
-                        <span class="detail-value">$45.00 USD</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Subtotal:</span>
-                        <span class="detail-value">$270.00 USD</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Seguro:</span>
-                        <span class="detail-value">$30.00 USD</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Impuestos:</span>
-                        <span class="detail-value">$48.60 USD</span>
-                    </div>
-                    <div class="detail-item total-item">
-                        <span class="detail-label">TOTAL:</span>
-                        <span class="detail-value">$348.60 USD</span>
-                    </div>
-                </div>
-
-                <div class="detail-section">
-                    <h3>🛡️ Extras Incluidos</h3>
-                    <div class="detail-item">
-                        <span class="detail-label">Seguro Todo Riesgo:</span>
-                        <span class="detail-value">$30.00 USD</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">GPS:</span>
-                        <span class="detail-value">Incluido</span>
-                    </div>
-                </div>
             </div>
 
-            <div class="contact-section">
-                <h3>📞 Información de Contacto</h3>
-                <div class="contact-info">
-                    <div class="contact-item">
-                        <span>📱</span>
-                        <span>+1 809-555-RENT</span>
-                    </div>
-                    <div class="contact-item">
-                        <span>✉️</span>
-                        <span>info@hlrentacar.com</span>
-                    </div>
-                    <div class="contact-item">
-                        <span>🕒</span>
-                        <span>24/7 Atención al Cliente</span>
-                    </div>
-                </div>
+            <div class="detail-section">
+                <h3>📅 Fechas de Alquiler</h3>
+                <span class="detail-label">Recogida:</span>
+                <br />
+                <br />
+                <span class="detail-value">@reserva.FechaHoraRecogida.ToString("dddd, d 'de' MMMM 'de' yyyy - hh:mm tt")</span>
+                <br />
+                <br />
+                <span class="detail-label">Devolución:</span>   
+                <br />
+                <br />
+                <span class="detail-value">@reserva.FechaHoraDevolucion.ToString("dddd, d 'de' MMMM 'de' yyyy - hh:mm tt")</span>
+                <br />
+                <br />
+                <div class="detail-item"><span class="detail-label">Duración:</span> @((reserva.FechaHoraDevolucion - reserva.FechaHoraRecogida).Days) días</div>
+            </div>
+
+            <div class="detail-section">
+                <h3>📍 Ubicaciones</h3>
+                <div class="detail-item"><span class="detail-label">Recogida:</span> @reserva.LugarRecogida</div>
+                <div class="detail-item"><span class="detail-label">Devolución:</span> @reserva.LugarDevolucion</div>
+            </div>
+
+            <div class="detail-section">
+                <h3>💰 Detalles de Precio</h3>
+                <div class="detail-item"><span class="detail-label">Subtotal:</span> @reserva.Subtotal.ToString("C")</div>
+                <div class="detail-item"><span class="detail-label">Extras:</span> @reserva.Extras.ToString("C")</div>
+                <div class="detail-item total-item"><span class="detail-label">TOTAL:</span> @reserva.Total.ToString("C")</div>
             </div>
         </div>
+    </div>
+}
+
 @code {
+    private BusquedaModel busqueda = new();
+    private string mensaje;
+    private ReservaDto reserva;
+    private bool clienteExiste;
 
+    private async Task VerificarLicencia()
+    {
+        try
+        {
+            mensaje = string.Empty;
+            reserva = null;
+
+            var licencia = busqueda.NumeroLicencia?.Trim();
+
+            if (string.IsNullOrWhiteSpace(licencia))
+            {
+                clienteExiste = false;
+                mensaje = "❌ Debe ingresar un número de licencia.";
+                return;
+            }
+
+            var cliente = await clienteService.ObtenerPorLicenciaAsync(licencia);
+            if (cliente != null)
+            {
+                clienteExiste = true;
+                mensaje = $"✅ Licencia válida: {cliente.Nombre} {cliente.Apellido}.";
+
+                reserva = await reservaService.ObtenerPorLicenciaAsync(licencia);
+                if (reserva == null)
+                {
+                    mensaje += " Pero no tiene reservas registradas.";
+                }
+            }
+            else
+            {
+                clienteExiste = false;
+                mensaje = $"❌ No se encontró ningún cliente con la licencia {licencia}.";
+            }
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"❌ Error interno: {ex.Message}";
+        }
+    }
+
+
+    public class BusquedaModel
+    {
+        [Required(ErrorMessage = "Debe ingresar un número de licencia.")]
+        public string NumeroLicencia { get; set; } = string.Empty;
+    }
 }
