@@ -8,6 +8,7 @@
 @rendermode InteractiveServer
 
 @inject IVehiculoService vehiculoService
+@inject IReservaService reservaService
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 
@@ -52,7 +53,20 @@
 
     protected override async Task OnInitializedAsync()
     {
-        vehiculos = await vehiculoService.ObtenerTodosAsync();
+        // 1️⃣  Trae todo el inventario
+        var todos = await vehiculoService.ObtenerTodosAsync();
+
+        // 2️⃣  Pide las reservas CONFIRMADAS cuya devolución aún no ha pasado
+        var reservasConfirmadas = await reservaService.ObtenerActivasAsync(); // método ya creado
+        var idsOcupados = reservasConfirmadas
+            .Select(r => r.VehiculoId)
+            .Distinct()
+            .ToHashSet();
+
+        // 3️⃣  Deja fuera los ocupados
+        vehiculos = todos
+            .Where(v => !idsOcupados.Contains(v.Id))
+            .ToList();
     }
 
     private async Task Reservar(int idVehiculo)
@@ -62,6 +76,7 @@
         {
             var reservaInicial = new
             {
+                VehiculoId = vehiculo.Id,
                 TipoVehiculo = vehiculo.Tipo
             };
 

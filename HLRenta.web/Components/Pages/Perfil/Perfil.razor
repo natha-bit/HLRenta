@@ -130,6 +130,7 @@
                             <th>Fecha Fin</th>
                             <th>Total</th>
                             <th>Estado</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -138,11 +139,28 @@
                             <tr>
                                 <td>@r.Id</td>
                                 <td>@r.ClienteNombre</td>
-                                <td>@r.VehiculoModelo</td>
+                                <td>@($"{r.Vehiculo.Marca} {r.Vehiculo.Modelo} - {r.Vehiculo.Placa}")</td>
                                 <td>@r.FechaHoraRecogida.ToString("dd/MM/yyyy")</td>
                                 <td>@r.FechaHoraDevolucion.ToString("dd/MM/yyyy")</td>
                                 <td>RD$ @r.Total.ToString("N2")</td>
                                 <td><span class="status">@r.Estado</span></td>
+                                <td>
+                                    @if (r.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <button class="btn btn-sm btn-success me-1"
+                                                @onclick="() => AceptarReserva(r.Id)">
+                                            ✔ Aceptar
+                                        </button>
+                                        <button class="btn btn-sm btn-danger"
+                                                @onclick="() => RechazarReserva(r.Id)">
+                                            ✖ Rechazar
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="status">@r.Estado</span>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -197,17 +215,30 @@
 
         if (tipoReporte == "vehiculos")
         {
-            vehiculos = await vehiculoService.ObtenerTodosAsync(); // o ObtenerTodosAsync()
+            vehiculos = await vehiculoService.ObtenerTodosAsync();
         }
-        else if (tipoReporte == "reservaciones")
+        else // tipoReporte == "reservaciones"
         {
-            if (fechaInicio != null && fechaFin != null)
+            if (fechaInicio is null || fechaFin is null)
             {
-                
+                await JSRuntime.InvokeVoidAsync("alert",
+                    "Selecciona la fecha de inicio y fin.");
+                return;
             }
+
+            if (fechaFin < fechaInicio)
+            {
+                await JSRuntime.InvokeVoidAsync("alert",
+                    "La fecha fin no puede ser anterior a la fecha inicio.");
+                return;
+            }
+
+            reservaciones = await reservacionService
+                .ObtenerPorRangoAsync(fechaInicio.Value, fechaFin.Value);
         }
 
         mostrarTabla = true;
+        StateHasChanged();
     }
 
     private void EditarVehiculo(int id)
@@ -224,5 +255,32 @@
             vehiculos = await vehiculoService.ObtenerTodosAsync();
         }
     }
+    private async Task AceptarReserva(int id)
+    {
+        if (await reservacionService.ActualizarEstadoAsync(id, "Confirmada"))
+        {
+            await RefrescarReservaciones();
+            await JSRuntime.InvokeVoidAsync("alert", "✅ Reserva confirmada.");
+        }
+    }
 
+    private async Task RechazarReserva(int id)
+    {
+        if (await reservacionService.ActualizarEstadoAsync(id, "Rechazada"))
+        {
+            await RefrescarReservaciones();
+            await JSRuntime.InvokeVoidAsync("alert", "❌ Reserva rechazada.");
+        }
+    }
+    private async Task RefrescarReservaciones()
+    {
+        if (tipoReporte == "reservaciones" &&
+            fechaInicio is not null && fechaFin is not null)
+        {
+            reservaciones = await reservacionService
+                .ObtenerPorRangoAsync(fechaInicio.Value, fechaFin.Value);
+
+            StateHasChanged();
+        }
+    }
 }

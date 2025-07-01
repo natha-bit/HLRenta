@@ -13,6 +13,8 @@ namespace HLRenta.web.Data.Services
         Task<bool> EliminarAsync(int id);
         Task<List<ReservaDto>> ObtenerPorRangoAsync(DateTime fechaInicio, DateTime fechaFin);
         Task<ReservaDto> ObtenerPorLicenciaAsync(string numeroLicencia);
+        Task<bool> ActualizarEstadoAsync(int id, string nuevoEstado);
+        Task<List<ReservaDto>> ObtenerActivasAsync();
 
 
         Task CrearReservaCompletaAsync(ReservaCompletaDto dto);
@@ -45,7 +47,6 @@ namespace HLRenta.web.Data.Services
                     ClienteId = r.ClienteId,
                     ClienteNombre = r.Cliente.Nombre,
                     VehiculoId = r.VehiculoId,
-                    VehiculoModelo = r.Vehiculo.Modelo
                 }).ToListAsync();
         }
 
@@ -71,7 +72,6 @@ namespace HLRenta.web.Data.Services
                 ClienteId = r.ClienteId,
                 ClienteNombre = r.Cliente.Nombre,
                 VehiculoId = r.VehiculoId,
-                VehiculoModelo = r.Vehiculo.Modelo
             };
         }
 
@@ -124,48 +124,43 @@ namespace HLRenta.web.Data.Services
             return true;
         }
 
-        public async Task<List<ReservaDto>> ObtenerPorRangoAsync(DateTime fechaInicio, DateTime fechaFin)
+        public async Task<List<ReservaDto>> ObtenerPorRangoAsync(DateTime fechaInicio,
+                                                                 DateTime fechaFin)
         {
-            if (fechaInicio > fechaFin)
-                throw new ArgumentException("La fecha de inicio no puede ser mayor que la fecha de fin.");
+            // Normaliza el rango [00:00 del inicio, 23:59 del fin]
+            var inicio = fechaInicio.Date;
+            var fin = fechaFin.Date.AddDays(1).AddTicks(-1);
 
             return await _context.Reservas
-                .Include(r => r.Cliente)
-                .Include(r => r.Vehiculo)
-                .Where(r =>
-                    r.FechaHoraRecogida.Date >= fechaInicio.Date &&
-                    r.FechaHoraDevolucion.Date <= fechaFin.Date)
+                .Where(r => r.FechaHoraRecogida >= inicio &&
+                            r.FechaHoraRecogida <= fin)
                 .Select(r => new ReservaDto
                 {
                     Id = r.Id,
+                    ClienteNombre = r.Cliente.Nombre + " " + r.Cliente.Apellido,
+                    Vehiculo = new VehiculoDto   // ← objeto completo
+                    {
+                        Marca = r.Vehiculo.Marca,
+                        Modelo = r.Vehiculo.Modelo,
+                        Placa = r.Vehiculo.Placa
+                        // agrega las propiedades que uses en la UI
+                    },
                     FechaHoraRecogida = r.FechaHoraRecogida,
                     FechaHoraDevolucion = r.FechaHoraDevolucion,
-                    Estado = r.Estado,
-                    LugarRecogida = r.LugarRecogida,
-                    LugarDevolucion = r.LugarDevolucion,
-                    Subtotal = r.Subtotal,
-                    Extras = r.Extras,
                     Total = r.Total,
-                    ClienteId = r.ClienteId,
-                    ClienteNombre = r.Cliente.Nombre,
-                    VehiculoId = r.VehiculoId,
-                    VehiculoModelo = r.Vehiculo.Modelo
+                    Estado = r.Estado
                 })
                 .ToListAsync();
         }
+
         public async Task CrearReservaCompletaAsync(ReservaCompletaDto dto)
         {
-            // Verificar si el cliente ya existe por email o teléfono
-            var clienteExistente = await _context.Clientes
-                .FirstOrDefaultAsync(c => c.Email == dto.Email || c.Telefono == dto.Telefono);
+            // 1) Buscar cliente por licencia
+            var cliente = await _context.Clientes
+                .FirstOrDefaultAsync(c => c.NumeroLicencia == dto.NumeroLicencia);
 
-            Cliente cliente;
-
-            if (clienteExistente != null)
-            {
-                cliente = clienteExistente;
-            }
-            else
+            // 2) Crear si no existe
+            if (cliente == null)
             {
                 cliente = new Cliente
                 {
@@ -177,11 +172,13 @@ namespace HLRenta.web.Data.Services
                 };
 
                 _context.Clientes.Add(cliente);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();           
             }
 
             var reserva = new Reserva
             {
+                ClienteId = cliente.Id,            
+                VehiculoId = dto.VehiculoId,
                 FechaHoraRecogida = dto.FechaHoraRecogida,
                 FechaHoraDevolucion = dto.FechaHoraDevolucion,
                 LugarRecogida = dto.LugarRecogida,
@@ -189,28 +186,26 @@ namespace HLRenta.web.Data.Services
                 Subtotal = dto.Subtotal,
                 Extras = dto.Extras,
                 Total = dto.Total,
-                ClienteId = cliente.Id,
-                VehiculoId = dto.VehiculoId,
-                Estado = "Pendiente"
+                Estado = "pendiente"
             };
-
 
             _context.Reservas.Add(reserva);
             await _context.SaveChangesAsync();
         }
-        public async Task<ReservaDto>ObtenerPorLicenciaAsync(string numeroLicencia)
+        public async Task<ReservaDto> ObtenerPorLicenciaAsync(string numeroLicencia)
         {
             if (string.IsNullOrWhiteSpace(numeroLicencia))
                 return null;
 
             var cliente = await _context.Clientes
+                .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.NumeroLicencia.ToLower().Trim() == numeroLicencia.ToLower().Trim());
 
             if (cliente == null)
                 return null;
 
             var reserva = await _context.Reservas
-                .Include(r => r.Vehiculo)
+                .AsNoTracking()
                 .Where(r => r.ClienteId == cliente.Id)
                 .OrderByDescending(r => r.FechaHoraRecogida)
                 .FirstOrDefaultAsync();
@@ -218,23 +213,87 @@ namespace HLRenta.web.Data.Services
             if (reserva == null)
                 return null;
 
+            var vehiculo = await _context.Vehiculos
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.Id == reserva.VehiculoId);
+
+            if (vehiculo == null)
+                return null;
+
             return new ReservaDto
             {
                 Id = reserva.Id,
                 FechaHoraRecogida = reserva.FechaHoraRecogida,
                 FechaHoraDevolucion = reserva.FechaHoraDevolucion,
-                Estado = reserva.Estado,
                 LugarRecogida = reserva.LugarRecogida,
                 LugarDevolucion = reserva.LugarDevolucion,
                 Subtotal = reserva.Subtotal,
                 Extras = reserva.Extras,
                 Total = reserva.Total,
-                ClienteId = cliente.Id,
-                ClienteNombre = $"{cliente.Nombre} {cliente.Apellido}",
-                VehiculoId = reserva.VehiculoId,
-                VehiculoModelo = reserva.Vehiculo?.Modelo ?? "No asignado"
+                Estado = reserva.Estado,
+                Cliente = new ClienteDto
+                {
+                    Nombre = cliente.Nombre,
+                    Apellido = cliente.Apellido,
+                    Email = cliente.Email,
+                    Telefono = cliente.Telefono
+                },
+                Vehiculo = new VehiculoDto
+                {
+                    Id = vehiculo.Id,
+                    Marca = vehiculo.Marca,
+                    Modelo = vehiculo.Modelo,
+                    Anio = vehiculo.Anio,
+                    Color = vehiculo.Color,
+                    Placa = vehiculo.Placa,
+                    Tipo = vehiculo.Tipo,
+                    PrecioPorDia = vehiculo.PrecioPorDia,
+                    Imagenes = vehiculo.Imagenes
+                }
             };
         }
+
+
+
+        public async Task<bool> ActualizarEstadoAsync(int id, string nuevoEstado)
+        {
+            var reserva = await _context.Reservas.FindAsync(id);
+            if (reserva == null) return false;
+
+            reserva.Estado = nuevoEstado;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<ReservaDto>> ObtenerActivasAsync()
+        {
+            try
+            {
+                var hoy = DateTime.Today;
+
+                var lista = await _context.Reservas
+                    .Where(r => r.Estado == "Confirmada" && r.FechaHoraDevolucion >= hoy)
+                    .Select(r => new ReservaDto
+                    {
+                        Id = r.Id,
+                        VehiculoId = r.VehiculoId,
+                        FechaHoraRecogida = r.FechaHoraRecogida,
+                        FechaHoraDevolucion = r.FechaHoraDevolucion
+                    })
+                    .ToListAsync();
+
+                return lista;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error en ObtenerActivasAsync: {ex.Message}");
+                return new List<ReservaDto>(); // ← esto resuelve el error
+            }
+        }
+
+
+
+
 
 
 

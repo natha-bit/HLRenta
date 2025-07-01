@@ -1,20 +1,39 @@
 ﻿/* HERO SECTION */
 .hero {
-    background: linear-gradient(to right, #007bff, #0056b3);
+    background-image: url('img/portada.jpg'); /* Ruta de tu imagen */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: white;
     padding: 4rem 2rem;
     display: flex;
     justify-content: center;
+    position: relative;
+    z-index: 1;
 }
 
+    /* Si quieres oscurecer un poco la imagen para que el texto se vea mejor */
+    .hero::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5); /* Capa oscura semitransparente */
+        z-index: -1;
+    }
+
 .hero-content {
-    max-width: 1200px;
-    width: 100%;
     display: flex;
+    flex-wrap: wrap;
     gap: 3rem;
     align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 1200px;
+    margin: auto;
+    position: relative;
+    z-index: 2;
 }
 
 /* IZQUIERDA: TEXTO */

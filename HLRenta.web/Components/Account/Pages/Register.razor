@@ -15,49 +15,61 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Register</PageTitle>
+<PageTitle>Registrarse</PageTitle>
 
-<h1>Register</h1>
 
-<div class="row">
-    <div class="col-md-4">
+<div class="login-page">
+    <div class="login-card">
+        <h2 class="login-title">📝 Crear Cuenta</h2>
+
         <StatusMessage Message="@Message" />
-        <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
+        <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
             <DataAnnotationsValidator />
-            <h2>Create a new account.</h2>
             <hr />
             <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-            <InputText @bind-Value="Input.name" class="form-control" autocomplete="username" aria-required="true" placeholder="Nombre Completo" />
-            <label for="email">name</label>
-            <ValidationMessage For="() => Input.name" class="text-danger" />
-    </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label for="email">Email</label>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
+
+            <div class="form-group">
+                <label>Nombre completo</label>
+                <InputText @bind-Value="Input.name" class="form-control" placeholder="Nombre completo" />
+                <ValidationMessage For="() => Input.name" />
             </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="password">Password</label>
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
+
+            <div class="form-group">
+                <label>Correo Electrónico</label>
+                <InputText @bind-Value="Input.Email" class="form-control" placeholder="ejemplo@correo.com" />
+                <ValidationMessage For="() => Input.Email" />
             </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="confirm-password">Confirm Password</label>
-                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+
+            <div class="form-group">
+                <label>Contraseña</label>
+                <InputText type="password" @bind-Value="Input.Password" class="form-control" placeholder="Contraseña" />
+                <ValidationMessage For="() => Input.Password" />
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+
+            <div class="form-group">
+                <label>Confirmar Contraseña</label>
+                <InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" placeholder="Confirmar contraseña" />
+                <ValidationMessage For="() => Input.ConfirmPassword" />
+            </div>
+
+            <button type="submit" class="btn-login">✅ Registrarse</button>
         </EditForm>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
+
+        <div class="register-alt">
+            <h3>¿Ya tienes una cuenta?</h3>
+            <a href="/Account/Login" class="btn btn-secondary">Iniciar sesión</a>
+        </div>
     </div>
 </div>
+<style>
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+    }
+</style>
 
 @code {
     private IEnumerable<IdentityError>? identityErrors;

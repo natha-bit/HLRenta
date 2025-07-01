@@ -17,6 +17,7 @@
         public string ClienteNombre { get; set; }
 
         public int VehiculoId { get; set; }
-        public string VehiculoModelo { get; set; }
+        public ClienteDto Cliente { get; set; } = new();
+        public VehiculoDto Vehiculo { get; set; } = new();
     }
 }

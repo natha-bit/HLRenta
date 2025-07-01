@@ -1,0 +1,129 @@
+﻿/* Fondo degradado elegante */
+login-page {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; 
+    padding: 1rem;
+}
+/* Tarjeta flotante */
+.login-card {
+    background: white;
+    padding: 3rem 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 420px;
+    animation: fadeIn 1s ease;
+}
+
+/* Animación de entrada */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Título llamativo */
+.login-title {
+    text-align: center;
+    color: #4b0082;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Campos de formulario */
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+    .form-group label {
+        font-weight: bold;
+        color: #333;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .remember {
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+    }
+.form-control {
+    width: 100%;
+    padding: 0.7rem;
+    font-size: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    transition: border 0.3s;
+}
+
+    .form-control:focus {
+        border-color: #667eea;
+        outline: none;
+    }
+
+/* Checkbox */
+.remember label {
+    dwidth: 100%;
+    padding: 0.7rem;
+    font-size: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    transition: border 0.3s;isplay: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    color: #555;
+}
+/* Botón de login */
+.btn-login {
+    width: 100%;
+    padding: 0.9rem;
+    font-size: 1.1rem;
+    background: linear-gradient(to right, #667eea, #764ba2);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+
+/* Enlace de registro */
+.register-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+}
+
+    .register-link a {
+        color: #764ba2;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }

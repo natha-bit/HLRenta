@@ -18,5 +18,7 @@
         public decimal Total { get; set; }
 
         public int VehiculoId { get; set; }
+
+
     }
 }

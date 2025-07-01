@@ -84,15 +84,15 @@
                     <h3>🚙 Selecciona tu Vehículo</h3>
                     <div class="form-group">
                         <label for="vehicleType">Vehículo</label>
-                        <select @bind="_tipoVehiculo"
+                        <select @bind="reservaCompleta.VehiculoId"
                                 id="vehicleType"
                                 class="form-control"
                                 required>
                             <option value="">Selecciona un vehículo</option>
                             @foreach (var vehiculo in vehiculosDisponibles)
                             {
-                                <option value="@vehiculo.Tipo">
-                                    @vehiculo.Modelo - @vehiculo.Placa - RD$@vehiculo.PrecioPorDia.ToString("N2")
+                                <option value="@vehiculo.Id">
+                                    @vehiculo.Marca @vehiculo.Modelo - @vehiculo.Placa - RD$@vehiculo.PrecioPorDia.ToString("N2")
                                 </option>
                             }
                         </select>
@@ -101,7 +101,7 @@
 
                 @{
                     var vehiculoSeleccionado = vehiculosDisponibles
-                    .FirstOrDefault(v => v.Tipo?.ToLower() == reservaCompleta.TipoVehiculo?.ToLower());
+                    .FirstOrDefault(v => v.Id == reservaCompleta.VehiculoId);
 
                     var imagenPrincipal = vehiculoSeleccionado?.Imagenes?.FirstOrDefault();
                 }
@@ -187,7 +187,7 @@
                 <div class="summary-item"><span>Fecha Retorno:</span><span>@(reservaCompleta.FechaRetorno?.ToString("dd/MM/yyyy") ?? "Sin definir")</span></div>
                 @{
                     var vehiculoSeleccionado = vehiculosDisponibles
-                    .FirstOrDefault(v => v.Tipo?.ToLower() == reservaCompleta.TipoVehiculo?.ToLower());
+                    .FirstOrDefault(v => v.Id == reservaCompleta.VehiculoId);
                 }
                 <div class="summary-item">
                     <span>Vehículo:</span>
@@ -238,6 +238,7 @@
     private List<VehiculoDto> vehiculosDisponibles = new();
     private ReservaDto reservas = new();
     private string? mensajeExito;
+    private List<VehiculoDto> _todosVehiculos = new();       // Cache de todo el inventario
 
     private async Task MostrarMensajeTemporal(string mensaje)
     {
@@ -254,8 +255,23 @@
 
     protected override async Task OnInitializedAsync()
     {
-        vehiculosDisponibles = await VehiculoService.ObtenerTodosAsync();
+        // 1️⃣  Trae todo el inventario
+        _todosVehiculos = await VehiculoService.ObtenerTodosAsync();
+
+        // 2️⃣  Pregunta por las reservas CONFIRMADAS aún vigentes
+        var reservasConfirmadas = await ReservaService.ObtenerActivasAsync();   // ← ya lo tienes
+
+        var idsOcupados = reservasConfirmadas
+            .Select(r => r.VehiculoId)
+            .Distinct()
+            .ToHashSet();
+
+        // 3️⃣  Deja fuera los ocupados
+        vehiculosDisponibles = _todosVehiculos
+            .Where(v => !idsOcupados.Contains(v.Id))
+            .ToList();
     }
+
     /* ---------- CICLO DE VIDA ---------- */
     protected override void OnInitialized()
     {
@@ -292,11 +308,11 @@
     {
         get
         {
-            if (diasReserva <= 0 || string.IsNullOrEmpty(reservaCompleta.TipoVehiculo))
+            if (diasReserva <= 0 || reservaCompleta.VehiculoId == 0)
                 return 0m;
 
             var vehiculo = vehiculosDisponibles
-                .FirstOrDefault(v => v.Tipo?.ToLower() == reservaCompleta.TipoVehiculo?.ToLower());
+                .FirstOrDefault(v => v.Id == reservaCompleta.VehiculoId);
 
             return vehiculo != null ? diasReserva * vehiculo.PrecioPorDia : 0m;
         }
@@ -321,6 +337,7 @@
                 if (reservaInicial != null)
                 {
                     reservaCompleta.TipoVehiculo = reservaInicial.TipoVehiculo;
+                    reservaCompleta.VehiculoId = reservaInicial.VehiculoId;
                     reservaCompleta.LugarSalida = reservaInicial.LugarSalida;
                     reservaCompleta.LugarRetorno = reservaInicial.LugarRetorno;
                     reservaCompleta.FechaSalida = reservaInicial.FechaSalida;
@@ -341,7 +358,7 @@
     private async Task ConfirmarReserva()
     {
         var vehiculo = vehiculosDisponibles
-            .FirstOrDefault(v => v.Tipo?.ToLower() == reservaCompleta.TipoVehiculo?.ToLower());
+            .FirstOrDefault(v => v.Id == reservaCompleta.VehiculoId); // ✅ Buscar por ID
 
         if (vehiculo == null)
         {
@@ -365,18 +382,17 @@
             Subtotal = Subtotal,
             Extras = Extras,
             Total = Total,
-            VehiculoId = vehiculo.Id
+            VehiculoId = vehiculo.Id // ✅ Aquí también por ID
         };
 
         await ReservaService.CrearReservaCompletaAsync(dto);
 
-        // ✅ Mostrar mensaje de éxito
         await JS.InvokeVoidAsync("localStorage.removeItem", "reservaInfo");
         reservaCompleta = new ReservaCompletaModel();
         StateHasChanged();
         await MostrarMensajeTemporal("Te hemos enviado los detalles de tu reserva por email. ¡Gracias por elegir HL RentaCar!");
-
     }
+
 
 
 
@@ -385,6 +401,7 @@
     /* ---------- MODELOS ---------- */
     public class ReservaInicialModel
     {
+        public int VehiculoId { get; set; }
         public string? TipoVehiculo { get; set; }
         public string? LugarSalida { get; set; }
         public string? LugarRetorno { get; set; }
@@ -403,7 +420,10 @@
         public string? Telefono { get; set; }
         public string? NumeroLicencia { get; set; }
         public string? Comentarios { get; set; }
+        public int VehiculoId { get; set; }
+
     }
+
 
     private DateOnly? _fechaSalida
     {
@@ -411,9 +431,10 @@
         set
         {
             reservaCompleta.FechaSalida = value;
-            StateHasChanged();
+            _ = InvokeAsync(ActualizarVehiculosDisponiblesAsync);
         }
     }
+
 
     private DateOnly? _fechaRetorno
     {
@@ -421,17 +442,7 @@
         set
         {
             reservaCompleta.FechaRetorno = value;
-            StateHasChanged();
-        }
-    }
-
-    private string? _tipoVehiculo
-    {
-        get => reservaCompleta.TipoVehiculo;
-        set
-        {
-            reservaCompleta.TipoVehiculo = value;
-            StateHasChanged();
+            _ = InvokeAsync(ActualizarVehiculosDisponiblesAsync);
         }
     }
 
@@ -439,6 +450,31 @@
     {
         reservaCompleta = new ReservaCompletaModel();
         mostrarExito = false;
+        StateHasChanged();
+    }
+
+    private async Task ActualizarVehiculosDisponiblesAsync()
+    {
+        if (!_fechaSalida.HasValue || !_fechaRetorno.HasValue)
+        {
+            vehiculosDisponibles = _todosVehiculos;
+            StateHasChanged();
+            return;
+        }
+
+        var inicio = reservaCompleta.FechaSalida.Value.ToDateTime(TimeOnly.MinValue);
+        var fin = reservaCompleta.FechaRetorno.Value.ToDateTime(TimeOnly.MaxValue);
+
+        var idsOcupados = (await ReservaService.ObtenerActivasAsync())
+            .Where(r => r.FechaHoraRecogida <= fin && r.FechaHoraDevolucion >= inicio)
+            .Select(r => r.VehiculoId)
+            .ToHashSet();
+
+        vehiculosDisponibles = _todosVehiculos
+            .Where(v => !idsOcupados.Contains(v.Id))
+            .ToList();
+
+        Console.WriteLine($"Vehículos visibles: {vehiculosDisponibles.Count}");
         StateHasChanged();
     }
 

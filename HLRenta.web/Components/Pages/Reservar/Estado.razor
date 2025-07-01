@@ -6,11 +6,31 @@
 @inject IReservaService reservaService
 @rendermode InteractiveServer
 
-<h3 class="text-center text-primary">🔍 Verificar Licencia</h3>
+<style>
+    .search-card input.form-control {
+        width: 90%;
+        padding: 0.6rem 1rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
 
+        .search-card input.form-control:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+</style>
 <div class="search-card">
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        var esError = mensaje.Contains("❌");
+        <div class="alert @(esError ? "alert-danger" : "alert-success") mt-3">
+            @mensaje
+        </div>
+    }
     <EditForm Model="@busqueda" OnValidSubmit="VerificarLicencia" FormName="formVerificacion">
-        <DataAnnotationsValidator />
         <ValidationSummary />
 
         <div class="form-group">
@@ -27,25 +47,58 @@
 {
     <div class="reservation-details mt-4">
         <div class="reservation-header">
-            <h2>Reserva ID: @reserva.Id</h2>
-            <div class="status-badge">✅ @reserva.Estado</div>
+            <h2>Licencia: @busqueda.NumeroLicencia</h2>
+            <div class="status-badge @GetEstadoColor(reserva.Estado)">
+                @GetEstadoIcono(reserva.Estado) @reserva.Estado
+            </div>
         </div>
 
-        <img src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=250&fit=crop&auto=format"
-             alt="Vehículo" class="car-image" />
+        @{
+            // Toma la primera imagen de la lista (si existe)
+            var img = reserva?.Vehiculo?.Imagenes?.FirstOrDefault();
+
+            // Si la ruta es relativa y no empieza con “/”, agrégala
+            if (!string.IsNullOrWhiteSpace(img) && !img.StartsWith("/"))
+                img = "/" + img;
+        }
+
+        @* ------------ Vista ---------------- *@
+        @if (!string.IsNullOrWhiteSpace(img))
+        {
+            <img src="@img"
+                 alt="Vehículo"
+                 class="car-image" />
+        }
+        else
+        {
+            <img src="/images/placeholder-car.png" @* o tu imagen por defecto *@
+                 alt="Vehículo"
+                 class="car-image" />
+        }
 
         <div class="detail-grid">
             <div class="detail-section">
                 <h3>👤 Información del Cliente</h3>
-                <div class="detail-item"><span class="detail-label">Nombre:</span> @reserva.ClienteNombre</div>
+                <div class="detail-item">
+                    <span class="detail-label">Nombre:</span>
+                    @($"{reserva.Cliente.Nombre} {reserva.Cliente.Apellido}")
+                </div>
                 <div class="detail-item"><span class="detail-label">Licencia:</span> @busqueda.NumeroLicencia</div>
-            </div>
-
-            <div class="detail-section">
-                <h3>🚗 Vehículo</h3>
-                <div class="detail-item"><span class="detail-label">Modelo:</span> @reserva.VehiculoModelo</div>
+                <div class="detail-item"><span class="detail-label">Teléfono:</span> @reserva.Cliente.Telefono</div>
+                <div class="detail-item"><span class="detail-label">Correo:</span> @reserva.Cliente.Email</div>
 
             </div>
+
+            
+                <div class="detail-section">
+                    <h3>🚗 Vehículo</h3>
+                    <div class="detail-item"><span class="detail-label">Marca:</span>  @reserva.Vehiculo.Marca</div>
+                    <div class="detail-item"><span class="detail-label">Modelo:</span> @reserva.Vehiculo.Modelo</div>
+                    <div class="detail-item"><span class="detail-label">Año:</span>    @reserva.Vehiculo.Anio</div>
+                    <div class="detail-item"><span class="detail-label">Placa:</span>  @reserva.Vehiculo.Placa</div>
+                    <div class="detail-item"><span class="detail-label">Color:</span>  @reserva.Vehiculo.Color</div>
+                    <div class="detail-item"><span class="detail-label">Precio/Día:</span> @reserva.Vehiculo.PrecioPorDia.ToString("C")</div>
+                </div>
 
             <div class="detail-section">
                 <h3>📅 Fechas de Alquiler</h3>
@@ -86,6 +139,15 @@
     private ReservaDto reserva;
     private bool clienteExiste;
 
+    private async Task MostrarMensajeTemporal(string texto, int segundos = 2)
+    {
+        mensaje = texto;
+        StateHasChanged(); // Fuerza la actualización visual inmediata
+        await Task.Delay(segundos * 1000); // Espera
+        mensaje = string.Empty;
+        StateHasChanged(); // Actualiza para ocultarlo
+    }
+
     private async Task VerificarLicencia()
     {
         try
@@ -98,7 +160,7 @@
             if (string.IsNullOrWhiteSpace(licencia))
             {
                 clienteExiste = false;
-                mensaje = "❌ Debe ingresar un número de licencia.";
+                await MostrarMensajeTemporal("❌ Debe ingresar un número de licencia.");
                 return;
             }
 
@@ -106,25 +168,31 @@
             if (cliente != null)
             {
                 clienteExiste = true;
-                mensaje = $"✅ Licencia válida: {cliente.Nombre} {cliente.Apellido}.";
-
                 reserva = await reservaService.ObtenerPorLicenciaAsync(licencia);
+
                 if (reserva == null)
                 {
-                    mensaje += " Pero no tiene reservas registradas.";
+                    await MostrarMensajeTemporal($"✅ Licencia válida: {cliente.Nombre} {cliente.Apellido}. Pero no tiene reservas registradas.");
+                }
+                else
+                {
+                    await MostrarMensajeTemporal($"✅ Licencia válida: {cliente.Nombre} {cliente.Apellido}.");
                 }
             }
             else
             {
                 clienteExiste = false;
-                mensaje = $"❌ No se encontró ningún cliente con la licencia {licencia}.";
+                await MostrarMensajeTemporal($"❌ No se encontró ningún cliente con la licencia {licencia}.");
             }
         }
         catch (Exception ex)
         {
-            mensaje = $"❌ Error interno: {ex.Message}";
+            await MostrarMensajeTemporal($"❌ Error interno: {ex.Message}");
         }
     }
+
+
+
 
 
     public class BusquedaModel
@@ -132,4 +200,27 @@
         [Required(ErrorMessage = "Debe ingresar un número de licencia.")]
         public string NumeroLicencia { get; set; } = string.Empty;
     }
+
+    private string GetEstadoColor(string estado)
+    {
+        return estado.ToLower() switch
+        {
+            "confirmada" => "estado-verde",
+            "pendiente" => "estado-amarillo",
+            "rechazada" => "estado-rojo",
+            _ => "estado-gris"
+        };
+    }
+
+    private string GetEstadoIcono(string estado)
+    {
+        return estado.ToLower() switch
+        {
+            "confirmada" => "✅",
+            "pendiente" => "⏳",
+            "rechazada" => "❌",
+            _ => "ℹ️"
+        };
+    }
+
 }

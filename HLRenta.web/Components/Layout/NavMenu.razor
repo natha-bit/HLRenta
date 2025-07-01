@@ -2,9 +2,11 @@
 
 @inject NavigationManager NavigationManager
 
-<header class="header">
+<div class="inicia">
     <div class="nav-container">
-        <div class="logo">HL</div>
+        <div>
+            <img src="img/logo.png"  style="height: 60px;" />
+        </div>
 
         <ul class="nav-menu">
             <li><a href="#">Inicio</a></li>
@@ -27,7 +29,7 @@
             </AuthorizeView>
         </ul>
     </div>
-</header>
+</div>
 @code {
     private string? currentUrl;
 
